@@ -1,5 +1,16 @@
 # Contexto maestro de Sensus AI
 
+## Lectura rapida para nuevos colaboradores
+
+Si solo tienes cinco minutos, lee en este orden:
+
+1. `README.md` para instalar y entender el producto.
+2. `docs/GUIA_RAPIDA_EQUIPO.md` para ubicar cada modulo y ejecutar una prueba.
+3. Este documento para conocer las reglas que no deben perderse durante una modificacion.
+4. `docs/API_CONTRACT.md` antes de cambiar una peticion o respuesta.
+
+La regla de oro es simple: el backend decide y el frontend presenta. Cualquier cambio que rompa esa separacion debe justificarse y documentarse.
+
 ## Nombre del software
 
 **Sensus AI**
@@ -9,6 +20,20 @@
 Sensus AI es una plataforma de inteligencia espacial asistida. Su objetivo es ayudar a personas ciegas o con baja vision a interpretar el entorno usando camaras, voz y backend con IA.
 
 No es solo una app. Debe pensarse como una arquitectura: celular primero, luego otros clientes como gafas, camaras externas, dispositivos portables o integraciones empresariales.
+
+## IA actual y evolucion prevista
+
+Actualmente Sensus AI utiliza **Gemini desde el backend** para interpretar escenas, describir objetos y responder en lenguaje natural. La llave de Gemini nunca debe llegar al frontend.
+
+La siguiente mejora tecnica sera incorporar **YOLO** como detector rapido y especializado. YOLO no reemplazara a Gemini al inicio:
+
+- YOLO detectara objetos y riesgos frecuentes con baja latencia.
+- Gemini se usara para escenas ambiguas, explicaciones, lectura contextual y tareas complejas.
+- El backend decidira cuando usar uno, el otro o ambos.
+- El sistema debe poder funcionar en modo Gemini, modo YOLO y modo hibrido.
+- Antes de activar YOLO en pruebas reales se deben medir precision, falsos negativos, latencia, consumo y comportamiento con poca luz.
+
+La meta es reducir costo y demora sin afirmar que una deteccion es segura cuando el modelo no tiene suficiente confianza.
 
 ## Idea principal de arquitectura
 
