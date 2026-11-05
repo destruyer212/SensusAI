@@ -1,5 +1,7 @@
 # Probar Sensus AI en celular y generar APK
 
+> Autor del proyecto y dueño del codigo: **Carlos Jesus Ascarate Riega**
+
 ## Estado actual
 
 La app movil esta hecha con React Native + Expo.

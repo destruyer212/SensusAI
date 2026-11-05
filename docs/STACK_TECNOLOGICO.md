@@ -1,5 +1,7 @@
 # Stack tecnologico de Sensus AI
 
+> Autor del proyecto y dueño del codigo: **Carlos Jesus Ascarate Riega**
+
 ## Vision general
 
 Sensus AI usa una arquitectura cliente-servidor.

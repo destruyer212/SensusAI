@@ -1,5 +1,7 @@
 # Contrato de API de Sensus AI
 
+> Autor del proyecto y dueño del codigo: **Carlos Jesus Ascarate Riega**
+
 El frontend y futuros dispositivos solo deben consumir el backend. La inteligencia, validaciones y reglas de seguridad viven en la API.
 
 ## Salud

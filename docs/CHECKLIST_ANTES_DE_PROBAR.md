@@ -1,5 +1,7 @@
 # Checklist antes de probar Sensus AI
 
+> Autor del proyecto y dueño del codigo: **Carlos Jesus Ascarate Riega**
+
 ## Estado actual
 
 - Backend FastAPI funcionando.

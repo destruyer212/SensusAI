@@ -1,5 +1,7 @@
 # Estado actual y tareas para Ing. Mendoza
 
+> Autor del proyecto y dueño del codigo: **Carlos Jesus Ascarate Riega**
+
 ## Donde estamos
 
 Sensus AI ya tiene un prototipo funcional en celular:

@@ -1,5 +1,7 @@
 # Estrategia de costo minimo para tiempo real
 
+> Autor del proyecto y dueño del codigo: **Carlos Jesus Ascarate Riega**
+
 ## Decision principal
 
 Sensus AI debe sentirse en tiempo real, pero no debe enviar video continuo a una IA costosa.

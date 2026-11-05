@@ -1,5 +1,7 @@
 # Sensus AI
 
+> Autor del proyecto y dueño del codigo: **Carlos Jesus Ascarate Riega**
+
 Plataforma de inteligencia espacial asistida para ayudar a personas ciegas o con baja vision a entender su entorno mediante camara, voz, reglas de seguridad y mapas interiores.
 
 > Estado actual: prototipo controlado para oficina y universidad. No reemplaza baston, perro guia, acompanante ni sistemas oficiales de seguridad.
@@ -109,6 +111,7 @@ Lee primero [la guia rapida del equipo](docs/GUIA_RAPIDA_EQUIPO.md). Para cambio
 
 Documentos clave:
 
+- [Autoria y propiedad](docs/AUTORIA_Y_PROPIEDAD.md): autor y dueño del codigo del proyecto.
 - [Guia rapida del equipo](docs/GUIA_RAPIDA_EQUIPO.md): entrada para nuevos colaboradores.
 - [Plan maestro](docs/PLAN_MAESTRO.md): avance real, fases y prioridades.
 - [Carpeta Ing. Mendoza](ing_mendoza/README.md): guia de incorporacion y tareas de la siguiente etapa.

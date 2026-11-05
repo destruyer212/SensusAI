@@ -1,5 +1,7 @@
 # Comandos de voz en Sensus AI
 
+> Autor del proyecto y dueño del codigo: **Carlos Jesus Ascarate Riega**
+
 ## Objetivo final
 
 El usuario no debe depender de botones pequenos.

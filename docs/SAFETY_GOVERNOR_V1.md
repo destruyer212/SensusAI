@@ -1,5 +1,7 @@
 # Safety Governor v1
 
+> Autor del proyecto y dueño del codigo: **Carlos Jesus Ascarate Riega**
+
 Safety Governor decide cuando Sensus AI debe analizar, hablar y alertar.
 
 ## Objetivo

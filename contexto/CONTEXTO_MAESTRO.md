@@ -1,5 +1,7 @@
 # Contexto maestro de Sensus AI
 
+> Autor del proyecto y dueño del codigo: **Carlos Jesus Ascarate Riega**
+
 ## Lectura rapida para nuevos colaboradores
 
 Si solo tienes cinco minutos, lee en este orden:

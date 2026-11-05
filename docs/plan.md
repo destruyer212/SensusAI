@@ -1,5 +1,7 @@
 # Plan de desarrollo de Sensus AI
 
+> Autor del proyecto y dueño del codigo: **Carlos Jesus Ascarate Riega**
+
 ## Objetivo
 
 Crear primero una app de celular con React Native y Expo Go para pruebas controladas. Luego evolucionar hacia otros clientes como gafas, camaras externas o dispositivos de asistencia.

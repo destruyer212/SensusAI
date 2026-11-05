@@ -1,5 +1,7 @@
 # Guia rapida para el equipo
 
+> Autor del proyecto y dueño del codigo: **Carlos Jesus Ascarate Riega**
+
 Este documento permite entender Sensus AI y ejecutar una prueba local sin leer todo el repositorio.
 
 ## 1. Mapa mental

@@ -1,5 +1,7 @@
 # Sensus AI Mobile
 
+> Autor del proyecto y dueño del codigo: **Carlos Jesus Ascarate Riega**
+
 Frontend movil de Sensus AI construido con React Native y Expo Go.
 
 El frontend no contiene la inteligencia principal. Solo:

@@ -1,5 +1,7 @@
 # Plan maestro de Sensus AI
 
+> Autor del proyecto y dueño del codigo: **Carlos Jesus Ascarate Riega**
+
 Este es el mapa de trabajo del proyecto. La prioridad es seguridad, utilidad para una persona ciega y una arquitectura que pueda crecer desde el celular hacia gafas u otros dispositivos.
 
 ## Estado actual

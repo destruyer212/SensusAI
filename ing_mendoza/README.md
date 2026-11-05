@@ -1,5 +1,7 @@
 # Carpeta de trabajo para Ing. Mendoza
 
+> Autor del proyecto y dueño del codigo: **Carlos Jesus Ascarate Riega**
+
 Bienvenido al proyecto Sensus AI. Esta carpeta resume donde estamos y que trabajo sigue. El repositorio ya tiene una base funcional; el objetivo ahora es mejorar precision, latencia, costo y pruebas sin romper la arquitectura.
 
 ## Lectura en 15 minutos

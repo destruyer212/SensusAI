@@ -1,5 +1,7 @@
 # Plan de integracion YOLO + Gemini
 
+> Autor del proyecto y dueño del codigo: **Carlos Jesus Ascarate Riega**
+
 ## Objetivo
 
 Combinar deteccion rapida local o de bajo costo con razonamiento visual de Gemini desde el backend.
