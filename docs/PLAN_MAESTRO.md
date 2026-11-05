@@ -41,7 +41,22 @@ Objetivo: que el prototipo sea reproducible en una oficina o habitacion.
 - Validar respuestas `clear`, `notice`, `caution`, `danger` y `unknown`.
 - Registrar errores tecnicos y nunca probar situaciones de riesgo.
 
-### Fase 1: inteligencia hibrida Gemini + YOLO
+### Fase 1: MVP completo con Gemini
+
+Objetivo: cerrar una version coherente, usable y evaluable usando Gemini como motor principal.
+
+1. Estabilizar el analisis de escenas y sus respuestas estructuradas.
+2. Completar comandos por texto y preparar el contrato para voz.
+3. Mejorar lectura por voz, estados, vibracion y manejo de errores.
+4. Validar modo manual y tiempo real con una politica clara de frecuencia.
+5. Completar rutas demo con QR, ubicacion conocida y emergencia.
+6. Crear un conjunto pequeno de pruebas reproducibles en oficina.
+7. Medir latencia, errores, costo por analisis y calidad de las respuestas.
+8. Documentar los limites y aprobar el flujo antes de probar en universidad.
+
+La salida de esta fase es un MVP Gemini completo. Todavia no significa que sea un sistema autonomo de seguridad.
+
+### Fase 2: inteligencia hibrida Gemini + YOLO
 
 Objetivo: responder mas rapido y gastar menos consultas de Gemini.
 
@@ -53,7 +68,7 @@ Objetivo: responder mas rapido y gastar menos consultas de Gemini.
 6. Enviar a Gemini solo escenas nuevas, ambiguas o solicitadas por el usuario.
 7. Medir precision, falsos negativos, latencia, memoria, bateria y costo.
 
-### Fase 2: universidad piloto
+### Fase 3: universidad piloto
 
 Objetivo: orientar en un espacio conocido con supervision.
 
@@ -63,7 +78,7 @@ Objetivo: orientar en un espacio conocido con supervision.
 - Probar oficina, pasillo y bano antes de ampliar el recorrido.
 - Crear una matriz de peligros por zona y horario.
 
-### Fase 3: voz natural y experiencia accesible
+### Fase 4: voz natural y experiencia accesible
 
 Objetivo: que la persona pueda decir `Sensus, ayudame a ir al bano` sin buscar botones.
 
@@ -72,7 +87,7 @@ Objetivo: que la persona pueda decir `Sensus, ayudame a ir al bano` sin buscar b
 - Permitir cancelar, repetir, pausar y pedir emergencia por voz.
 - Mantener botones grandes como respaldo, no como flujo principal.
 
-### Fase 4: pruebas humanas y Android
+### Fase 5: pruebas humanas y Android
 
 Objetivo: evaluar utilidad real de forma responsable.
 
@@ -82,7 +97,7 @@ Objetivo: evaluar utilidad real de forma responsable.
 - Corregir antes de ampliar el area de prueba.
 - Generar APK de prueba con configuracion segura y sin secretos incluidos.
 
-### Fase 5: dispositivos portables
+### Fase 6: dispositivos portables
 
 Objetivo: preparar gafas o camaras externas.
 
@@ -103,9 +118,11 @@ No se pasa de fase por entusiasmo. Se avanza cuando:
 
 ## Orden inmediato de trabajo
 
-1. Mantener Gemini como referencia y congelar un conjunto pequeno de pruebas.
-2. Implementar la interfaz de detector en backend sin acoplarla a YOLO.
-3. Preparar imagenes anonimizadas y etiquetas del entorno controlado.
-4. Integrar YOLO en modo paralelo y comparar resultados.
-5. Activar alertas YOLO solo con umbrales conservadores.
-6. Recién despues llevarlo al mapa real de la universidad.
+1. Completar y probar el MVP usando Gemini como motor principal.
+2. Congelar un conjunto pequeno de escenas y comandos de referencia.
+3. Medir costo, latencia y errores del MVP Gemini.
+4. Implementar la interfaz de detector en backend sin acoplarla a YOLO.
+5. Preparar imagenes anonimizadas y etiquetas del entorno controlado.
+6. Integrar YOLO en modo paralelo y comparar resultados.
+7. Activar alertas YOLO solo con umbrales conservadores.
+8. Recién despues llevarlo al mapa real de la universidad.

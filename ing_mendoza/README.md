@@ -15,6 +15,17 @@ Bienvenido al proyecto Sensus AI. Esta carpeta resume donde estamos y que trabaj
 
 Gemini y YOLO se integran en el backend. El frontend React Native solo captura, envia, recibe y presenta. No se debe meter la llave de Gemini ni logica critica en el celular.
 
-## Resultado esperado de esta etapa
+## Prioridad actual
+
+Primero debemos terminar y estabilizar el MVP completo con Gemini. No se debe empezar por YOLO ni quitar Gemini todavía.
+
+El orden es:
+
+1. Gemini funcionando de extremo a extremo.
+2. Pruebas repetibles y medicion de costo, latencia y errores.
+3. YOLO como optimizacion para detecciones frecuentes.
+4. Modo hibrido con reglas conservadoras.
+
+## Resultado esperado de la etapa YOLO
 
 Un pipeline hibrido en el que YOLO responda rapido a objetos y riesgos frecuentes, mientras Gemini explique escenas complejas o ambiguas. La salida final debe pasar por reglas de seguridad antes de convertirse en voz.

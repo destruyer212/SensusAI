@@ -14,7 +14,15 @@ Sensus AI ya tiene un prototipo funcional en celular:
 - Command Core para interpretar ordenes de voz escritas.
 - Manejo de emergencia y estado de riesgo.
 
-## Que falta para una version mas fuerte
+## Que falta para cerrar primero el MVP Gemini
+
+1. Validar analisis manual y tiempo real en escenas controladas.
+2. Completar el flujo de comandos, respuesta hablada y estados de error.
+3. Probar rutas demo con QR y ubicacion conocida.
+4. Medir latencia, costo por consulta y calidad de respuesta.
+5. Congelar un conjunto de escenas de referencia.
+
+## Que falta despues para una version mas fuerte
 
 1. Integrar un detector YOLO desacoplado del resto del backend.
 2. Medir la diferencia entre Gemini, YOLO y el modo hibrido.
