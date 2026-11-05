@@ -1,0 +1,22 @@
+# Secrets and local configuration
+.env
+*.env.local
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Node and Expo
+frontend/node_modules/
+frontend/.expo/
+frontend/dist-check/
+frontend/dist/
+npm-debug.log*
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+*.swp

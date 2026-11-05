@@ -1,0 +1,165 @@
+{
+  "sites": [
+    {
+      "id": "office_demo",
+      "name": "Oficina piloto",
+      "type": "office",
+      "description": "Espacio controlado inicial para probar Sensus AI antes de universidad.",
+      "landmarks": [
+        {
+          "id": "office_entrance",
+          "name": "Entrada principal de oficina",
+          "floor": 1,
+          "kind": "entrance",
+          "spoken": "Estas en la entrada principal de la oficina."
+        },
+        {
+          "id": "office_hall",
+          "name": "Pasillo central",
+          "floor": 1,
+          "kind": "hall",
+          "spoken": "Estas en el pasillo central de la oficina."
+        },
+        {
+          "id": "office_mens_bathroom",
+          "name": "Bano de hombres",
+          "floor": 1,
+          "kind": "bathroom_men",
+          "spoken": "Estas frente al bano de hombres."
+        },
+        {
+          "id": "office_womens_bathroom",
+          "name": "Bano de mujeres",
+          "floor": 1,
+          "kind": "bathroom_women",
+          "spoken": "Estas frente al bano de mujeres."
+        },
+        {
+          "id": "office_safe_point",
+          "name": "Punto seguro de oficina",
+          "floor": 1,
+          "kind": "safe_point",
+          "spoken": "Estas en el punto seguro de la oficina."
+        }
+      ],
+      "qr_codes": [
+        {
+          "code": "SENSUS:office_demo:office_entrance",
+          "landmark_id": "office_entrance"
+        },
+        {
+          "code": "SENSUS:office_demo:office_hall",
+          "landmark_id": "office_hall"
+        }
+      ],
+      "routes": [
+        {
+          "from": "office_entrance",
+          "to": "office_mens_bathroom",
+          "steps": [
+            "Avanza recto por el pasillo.",
+            "Mantente cerca de la pared derecha.",
+            "El bano de hombres esta despues de la segunda puerta."
+          ]
+        },
+        {
+          "from": "office_entrance",
+          "to": "office_womens_bathroom",
+          "steps": [
+            "Avanza recto por el pasillo.",
+            "Mantente cerca de la pared izquierda.",
+            "El bano de mujeres esta despues de la segunda puerta."
+          ]
+        },
+        {
+          "from": "office_hall",
+          "to": "office_safe_point",
+          "steps": [
+            "Detente y ubica la pared mas cercana.",
+            "Avanza lentamente hacia la entrada principal.",
+            "Espera apoyo en el punto seguro."
+          ]
+        }
+      ],
+      "emergency": {
+        "safe_landmark_id": "office_safe_point",
+        "message": "Modo emergencia. Detente, ubica la pared mas cercana y pide apoyo. El punto seguro esta cerca de la entrada principal."
+      }
+    },
+    {
+      "id": "university_pilot",
+      "name": "Universidad piloto",
+      "type": "university",
+      "description": "Mapa inicial para probar un piso de universidad antes de escalar a 16 pisos y 5 sotanos.",
+      "landmarks": [
+        {
+          "id": "u_p7_elevator_main",
+          "name": "Ascensor principal piso 7",
+          "floor": 7,
+          "kind": "elevator",
+          "spoken": "Estas en el piso 7, frente al ascensor principal."
+        },
+        {
+          "id": "u_p7_mens_bathroom",
+          "name": "Bano de hombres piso 7",
+          "floor": 7,
+          "kind": "bathroom_men",
+          "spoken": "Estas frente al bano de hombres del piso 7."
+        },
+        {
+          "id": "u_p7_womens_bathroom",
+          "name": "Bano de mujeres piso 7",
+          "floor": 7,
+          "kind": "bathroom_women",
+          "spoken": "Estas frente al bano de mujeres del piso 7."
+        },
+        {
+          "id": "u_p7_security_point",
+          "name": "Punto de apoyo piso 7",
+          "floor": 7,
+          "kind": "safe_point",
+          "spoken": "Estas en el punto de apoyo del piso 7."
+        }
+      ],
+      "qr_codes": [
+        {
+          "code": "SENSUS:university_pilot:u_p7_elevator_main",
+          "landmark_id": "u_p7_elevator_main"
+        }
+      ],
+      "routes": [
+        {
+          "from": "u_p7_elevator_main",
+          "to": "u_p7_mens_bathroom",
+          "steps": [
+            "Desde el ascensor principal, avanza recto por el pasillo.",
+            "Mantente del lado derecho.",
+            "El bano de hombres esta despues de dos puertas."
+          ]
+        },
+        {
+          "from": "u_p7_elevator_main",
+          "to": "u_p7_womens_bathroom",
+          "steps": [
+            "Desde el ascensor principal, avanza recto por el pasillo.",
+            "Mantente del lado izquierdo.",
+            "El bano de mujeres esta despues de dos puertas."
+          ]
+        },
+        {
+          "from": "u_p7_elevator_main",
+          "to": "u_p7_security_point",
+          "steps": [
+            "Detente frente al ascensor.",
+            "Pide apoyo a una persona cercana.",
+            "Si puedes avanzar, manten la pared derecha y llega al punto de apoyo."
+          ]
+        }
+      ],
+      "emergency": {
+        "safe_landmark_id": "u_p7_security_point",
+        "message": "Modo emergencia. Detente frente al ascensor principal del piso 7. Pide apoyo cercano o llama a seguridad."
+      }
+    }
+  ]
+}
