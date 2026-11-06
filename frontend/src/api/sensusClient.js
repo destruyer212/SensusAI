@@ -1,4 +1,5 @@
 import Constants from "expo-constants";
+import * as FileSystem from "expo-file-system/legacy";
 const configuredUrl = Constants.expoConfig?.extra?.apiBaseUrl;
 const API_BASE_URL = configuredUrl || "http://localhost:8000";
 
@@ -15,45 +16,29 @@ export async function getVisionCapabilities() {
 }
 
 export async function fastDetectScene(imageUri, sessionId = "mobile-default") {
-  const formData = new FormData();
-  formData.append("image", { uri: imageUri, name: "fast-scene.jpg", type: "image/jpeg" });
-  formData.append("session_id", sessionId);
-
-  const response = await fetch(`${API_BASE_URL}/api/vision/fast-detect`, {
-    method: "POST",
-    body: formData,
-    headers: { Accept: "application/json" },
-  });
-  if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(`Sensus fast detection error: ${response.status} ${detail}`);
-  }
-  return response.json();
+  return uploadImage("/api/vision/fast-detect", imageUri, { session_id: sessionId });
 }
 
 export async function analyzeScene(imageUri, task = "navigation") {
-  const formData = new FormData();
-  formData.append("image", {
-    uri: imageUri,
-    name: "scene.jpg",
-    type: "image/jpeg",
-  });
-  formData.append("task", task);
+  return uploadImage("/api/vision/analyze", imageUri, { task });
+}
 
-  const response = await fetch(`${API_BASE_URL}/api/vision/analyze`, {
-    method: "POST",
-    body: formData,
-    headers: {
-      Accept: "application/json",
+async function uploadImage(path, imageUri, query = {}) {
+  const queryString = new URLSearchParams(query).toString();
+  const result = await FileSystem.uploadAsync(
+    `${API_BASE_URL}${path}?${queryString}`,
+    imageUri,
+    {
+      uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+      fieldName: "image",
+      mimeType: "image/jpeg",
     },
-  });
+  );
 
-  if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(`Sensus API error: ${response.status} ${detail}`);
+  if (result.status < 200 || result.status >= 300) {
+    throw new Error(`Sensus API error: ${result.status} ${result.body || ""}`);
   }
-
-  return response.json();
+  return JSON.parse(result.body);
 }
 
 async function postJson(path, payload) {
