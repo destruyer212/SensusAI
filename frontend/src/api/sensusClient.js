@@ -1,6 +1,4 @@
 import Constants from "expo-constants";
-import { FileSystemUploadType, uploadAsync } from "expo-file-system/legacy";
-
 const configuredUrl = Constants.expoConfig?.extra?.apiBaseUrl;
 const API_BASE_URL = configuredUrl || "http://localhost:8000";
 
@@ -9,24 +7,28 @@ export function getApiBaseUrl() {
 }
 
 export async function analyzeScene(imageUri, task = "navigation") {
-  const uploadResult = await uploadAsync(`${API_BASE_URL}/api/vision/analyze`, imageUri, {
-    httpMethod: "POST",
-    uploadType: FileSystemUploadType.MULTIPART,
-    fieldName: "image",
-    mimeType: "image/jpeg",
-    parameters: {
-      task,
-    },
+  const formData = new FormData();
+  formData.append("image", {
+    uri: imageUri,
+    name: "scene.jpg",
+    type: "image/jpeg",
+  });
+  formData.append("task", task);
+
+  const response = await fetch(`${API_BASE_URL}/api/vision/analyze`, {
+    method: "POST",
+    body: formData,
     headers: {
       Accept: "application/json",
     },
   });
 
-  if (uploadResult.status < 200 || uploadResult.status >= 300) {
-    throw new Error(`Sensus API error: ${uploadResult.status} ${uploadResult.body}`);
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(`Sensus API error: ${response.status} ${detail}`);
   }
 
-  return JSON.parse(uploadResult.body);
+  return response.json();
 }
 
 async function postJson(path, payload) {
