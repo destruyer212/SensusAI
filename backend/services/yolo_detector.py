@@ -9,7 +9,7 @@ from io import BytesIO
 from pathlib import Path
 from typing import Any
 
-from settings import settings
+from settings import ROOT_DIR, settings
 
 try:  # Optional so the existing Gemini backend stays deployable on t4g.micro.
     from PIL import Image
@@ -28,13 +28,18 @@ class YoloDetector:
 
     @property
     def available(self) -> bool:
-        return bool(settings.yolo_enabled and YOLO and Path(settings.yolo_model_path).exists())
+        return bool(settings.yolo_enabled and YOLO and self.model_path.exists())
+
+    @property
+    def model_path(self) -> Path:
+        path = Path(settings.yolo_model_path)
+        return path if path.is_absolute() else ROOT_DIR / path
 
     def status(self) -> dict[str, Any]:
         return {
             "enabled": settings.yolo_enabled,
             "available": self.available,
-            "model": settings.yolo_model_path,
+            "model": str(self.model_path),
             "dependency_installed": YOLO is not None,
         }
 
@@ -45,7 +50,7 @@ class YoloDetector:
                 "descarga el peso configurado y activa YOLO_ENABLED=true."
             )
         if self._model is None:
-            self._model = YOLO(settings.yolo_model_path)
+            self._model = YOLO(str(self.model_path))
         if Image is None:
             raise RuntimeError("Pillow es necesario para el adaptador YOLO.")
 
