@@ -122,6 +122,7 @@ Documentos clave:
 - [Comandos de voz](docs/VOICE_COMMANDS.md): arquitectura de comandos tipo `Sensus quiero ir al bano`.
 - [Estrategia de costo](docs/ESTRATEGIA_COSTO_MINIMO_TIEMPO_REAL.md): tiempo real sin consultar Gemini todo el tiempo.
 - [Pruebas en celular y APK](docs/PROBAR_EN_CELULAR_Y_APK.md): Expo Go y compilacion movil.
+- [Historial de cambios](docs/CHANGELOG.md): cambios recientes, correcciones y despliegues.
 
 ## Reglas de producto
 
