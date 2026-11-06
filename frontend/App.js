@@ -36,6 +36,13 @@ const REALTIME_INTERVALS = {
   danger: 2600,
   unknown: 7000,
 };
+const YOLO_REALTIME_INTERVALS = {
+  clear: 1400,
+  notice: 900,
+  caution: 550,
+  danger: 350,
+  unknown: 1200,
+};
 const MIN_REPEAT_SPEECH_MS = 12000;
 
 export default function App() {
@@ -53,6 +60,7 @@ export default function App() {
   const [isRealtime, setIsRealtime] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isCameraReady, setIsCameraReady] = useState(false);
+  const [fastVisionEnabled, setFastVisionEnabled] = useState(false);
   const [cameraFacing, setCameraFacing] = useState("back");
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [status, setStatus] = useState("Camara pendiente");
@@ -81,7 +89,9 @@ export default function App() {
   useEffect(() => {
     getVisionCapabilities()
       .then((capabilities) => {
-        fastVisionEnabledRef.current = capabilities?.yolo?.available === true;
+        const available = capabilities?.yolo?.available === true;
+        fastVisionEnabledRef.current = available;
+        setFastVisionEnabled(available);
       })
       .catch(() => {
         fastVisionEnabledRef.current = false;
@@ -114,7 +124,7 @@ export default function App() {
     setDetections(nextDetections);
     setRiskLevel(nextRisk);
     lastRiskRef.current = nextRisk;
-    setStatus(result.mode === "gemini" ? `IA ${nextRisk}` : "Modo demo");
+    setStatus(result.mode === "gemini" ? `Gemini ${nextRisk}` : result.mode === "yolo" ? `YOLO ${nextRisk}` : "Modo demo");
 
     if (["caution", "danger"].includes(nextRisk) || result.action === "stop") {
       Vibration.vibrate([0, 180, 80, 180]);
@@ -311,7 +321,8 @@ export default function App() {
 
   function scheduleRealtimeScan() {
     if (!realtimeActiveRef.current) return;
-    const delay = REALTIME_INTERVALS[lastRiskRef.current] || REALTIME_INTERVALS.unknown;
+    const intervals = fastVisionEnabledRef.current ? YOLO_REALTIME_INTERVALS : REALTIME_INTERVALS;
+    const delay = intervals[lastRiskRef.current] || intervals.unknown;
     realtimeTimer.current = setTimeout(async () => {
       if (!realtimeActiveRef.current) return;
       await scanScene(activeTaskRef.current, "realtime");
@@ -429,7 +440,9 @@ export default function App() {
               style={[styles.actionButton, styles.secondaryButton, isRealtime && styles.stopButton]}
               onPress={toggleRealtime}
             >
-              <Text style={styles.actionButtonText}>{isRealtime ? "Detener" : "Tiempo real 6s"}</Text>
+              <Text style={styles.actionButtonText}>
+                {isRealtime ? "Detener" : fastVisionEnabled ? "Tiempo real YOLO" : "Tiempo real IA"}
+              </Text>
             </Pressable>
           </View>
 
