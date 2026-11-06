@@ -15,6 +15,9 @@ frontend/dist-check/
 frontend/dist/
 npm-debug.log*
 
+# Modelos descargados localmente (no subir pesos binarios al repositorio)
+backend/models/*.pt
+
 # OS and editor files
 .DS_Store
 Thumbs.db

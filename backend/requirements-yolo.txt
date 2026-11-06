@@ -1,0 +1,5 @@
+# Optional local/worker profile. Keep it out of the tiny Gemini-only EC2 image.
+# Author and code owner: Carlos Jesus Ascarate Riega
+-r requirements.txt
+ultralytics>=8.4.0,<9.0.0
+Pillow>=10.0.0

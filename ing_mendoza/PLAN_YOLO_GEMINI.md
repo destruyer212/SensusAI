@@ -38,13 +38,48 @@ Texto corto + nivel de riesgo + vibracion/interfaz
 
 ## Fases tecnicas
 
-1. Definir `ObjectDetector` y un formato comun de detecciones.
-2. Crear un adaptador YOLO sin cambiar el endpoint del frontend.
-3. Ejecutar YOLO en modo sombra y guardar solo metricas anonimas.
-4. Comparar detecciones contra un conjunto etiquetado.
-5. Activar solo clases y umbrales con resultados suficientes.
-6. Hacer fallback a Gemini cuando YOLO no tenga confianza o falte contexto.
-7. Medir costo, latencia, bateria y falsos negativos antes de usarlo en universidad.
+1. **Hecho hoy:** contrato común de detecciones y `SafetyGovernor` temporal.
+2. **Hecho hoy:** `POST /api/vision/fast-detect` y `GET /api/vision/capabilities`.
+3. **Hecho hoy:** adaptador YOLO opcional; Gemini sigue en `/api/vision/analyze`.
+4. Instalar `backend/requirements-yolo.txt` en el equipo/worker de visión y descargar el modelo pequeño.
+5. Ejecutar YOLO en modo sombra y guardar solo métricas anónimas.
+6. Comparar detecciones contra un conjunto etiquetado de oficina y universidad.
+7. Activar solo clases y umbrales con resultados suficientes.
+8. Hacer fallback a Gemini cuando YOLO no tenga confianza o falte contexto.
+9. Medir costo, latencia, batería y falsos negativos antes de usarlo con personas.
+
+## Arquitectura ejecutable de la primera prueba
+
+```text
+Expo Camera (JPEG pequeño, 2-5 FPS controlados)
+          |
+          v
+POST /api/vision/fast-detect  ---->  YOLO pequeño (worker local)
+          |                                  |
+          +------------------------> SafetyGovernor
+                                             |
+                         +-------------------+------------------+
+                         |                                      |
+                 alerta corta/vibración                 sin alerta repetida
+                         |
+       comando explícito, objeto desconocido o escena compleja
+                         v
+              POST /api/vision/analyze -> Gemini
+```
+
+`fast-detect` no consume tokens de Gemini. Gemini se consulta por comando de voz, lectura, escena ambigua o cambio importante. No se envía cada frame: el cliente espera respuesta y descarta frames viejos.
+
+YOLO no se instala todavía en el EC2 `t4g.micro`: tiene poca memoria y debe seguir estable con Gemini. La primera inferencia YOLO se hará en el equipo local o en un worker separado.
+
+## Contrato de detección
+
+Cada detección usa coordenadas normalizadas `[x1, y1, x2, y2]` de 0 a 1:
+
+```json
+{"label":"mochila","confidence":0.91,"bbox":[0.35,0.52,0.72,0.95]}
+```
+
+La distancia es aproximada. Una alerta crítica siempre debe decir "detente" o pedir confirmación; nunca debe prometer que el camino está seguro.
 
 ## Criterios de seguridad
 

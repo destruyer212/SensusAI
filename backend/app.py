@@ -5,6 +5,7 @@ from routes.vision import router as vision_router
 from routes.spatial import router as spatial_router
 from routes.command import router as command_router
 from settings import settings
+from services.yolo_detector import yolo_detector
 
 
 def create_app() -> FastAPI:
@@ -41,6 +42,8 @@ def create_app() -> FastAPI:
             "ok": True,
             "app": settings.app_name,
             "gemini_enabled": settings.gemini_enabled,
+            "yolo_enabled": settings.yolo_enabled,
+            "yolo_available": yolo_detector.available,
         }
 
     return app

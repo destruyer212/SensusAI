@@ -6,6 +6,31 @@ export function getApiBaseUrl() {
   return API_BASE_URL;
 }
 
+export async function getVisionCapabilities() {
+  const response = await fetch(`${API_BASE_URL}/api/vision/capabilities`, {
+    headers: { Accept: "application/json" },
+  });
+  if (!response.ok) throw new Error(`Sensus API capabilities error: ${response.status}`);
+  return response.json();
+}
+
+export async function fastDetectScene(imageUri, sessionId = "mobile-default") {
+  const formData = new FormData();
+  formData.append("image", { uri: imageUri, name: "fast-scene.jpg", type: "image/jpeg" });
+  formData.append("session_id", sessionId);
+
+  const response = await fetch(`${API_BASE_URL}/api/vision/fast-detect`, {
+    method: "POST",
+    body: formData,
+    headers: { Accept: "application/json" },
+  });
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(`Sensus fast detection error: ${response.status} ${detail}`);
+  }
+  return response.json();
+}
+
 export async function analyzeScene(imageUri, task = "navigation") {
   const formData = new FormData();
   formData.append("image", {

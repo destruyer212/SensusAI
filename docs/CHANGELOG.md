@@ -2,6 +2,16 @@
 
 > Autor del proyecto y dueño del codigo: **Carlos Jesus Ascarate Riega**
 
+## 2026-11-05 — Primera arquitectura YOLO + Gemini
+
+- Se añadió `POST /api/vision/fast-detect` para detección rápida sin consumir Gemini.
+- Se añadió `GET /api/vision/capabilities` para que Expo conozca el motor activo.
+- Se añadió `SafetyGovernor` con prioridad, crecimiento de cajas, histéresis y supresión de repeticiones.
+- Se añadió el adaptador opcional `yolo_detector.py` y `backend/requirements-yolo.txt`.
+- Expo usa YOLO automáticamente en tiempo real solo cuando `capabilities.yolo.available` es `true`; de lo contrario conserva Gemini.
+- Se instaló y probó localmente `ultralytics` con el modelo pequeño `yolo26n.pt`; los pesos quedan fuera de GitHub.
+- El EC2 pequeño mantiene Gemini sin YOLO para no arriesgar memoria ni disponibilidad.
+
 ## 2026-11-05 — Backend en EC2 y corrección de subida de imágenes
 
 ### Backend y nube

@@ -85,4 +85,6 @@ Camara
 
 ## Siguiente mejora
 
-La siguiente version debe usar movimiento del celular o diferencia visual entre frames para decidir si vale la pena consultar IA.
+La implementación inicial ya está preparada en `backend/services/safety_governor.py` y `backend/services/yolo_detector.py`. El gobernador calcula posición, tamaño relativo y crecimiento de la caja entre frames, aplica histéresis y suprime repeticiones. El endpoint rápido es `POST /api/vision/fast-detect`; el estado real de los motores se consulta en `GET /api/vision/capabilities`.
+
+Si YOLO no está instalado o no hay modelo, la API no inventa detecciones: devuelve `503` y Gemini continúa siendo el camino semántico. La validación debe empezar en oficina, con acompañamiento y sin caminar mirando el teléfono.

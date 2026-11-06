@@ -17,7 +17,9 @@ import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 
 import {
   analyzeScene,
+  fastDetectScene,
   getApiBaseUrl,
+  getVisionCapabilities,
   getEmergencyGuidance,
   getRoute,
   interpretCommand,
@@ -43,6 +45,8 @@ export default function App() {
   const realtimeActiveRef = useRef(false);
   const activeTaskRef = useRef("navigation");
   const requestSeqRef = useRef(0);
+  const fastVisionEnabledRef = useRef(false);
+  const visionSessionRef = useRef(`mobile-${Date.now()}`);
   const lastSpokenRef = useRef({ text: "", at: 0 });
   const lastRiskRef = useRef("unknown");
   const [permission, requestPermission] = useCameraPermissions();
@@ -73,6 +77,16 @@ export default function App() {
       Speech.stop();
     };
   }, [permission, requestPermission]);
+
+  useEffect(() => {
+    getVisionCapabilities()
+      .then((capabilities) => {
+        fastVisionEnabledRef.current = capabilities?.yolo?.available === true;
+      })
+      .catch(() => {
+        fastVisionEnabledRef.current = false;
+      });
+  }, []);
 
   function speak(text, { force = false, riskLevelOverride = "unknown" } = {}) {
     if (!voiceEnabled) return;
@@ -134,7 +148,9 @@ export default function App() {
         skipProcessing: true,
       });
 
-      const result = await analyzeScene(photo.uri, taskOverride);
+      const result = source === "realtime" && fastVisionEnabledRef.current
+        ? await fastDetectScene(photo.uri, visionSessionRef.current)
+        : await analyzeScene(photo.uri, taskOverride);
       const responseAge = Date.now() - startedAt;
       if (requestId !== requestSeqRef.current) return;
       if (source === "realtime" && responseAge > REALTIME_MAX_RESPONSE_AGE_MS) {
