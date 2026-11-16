@@ -1,0 +1,13 @@
+# Dependencias principales del Sistema de Visión y Profundidad
+numpy>=1.26.0,<2.2.0
+opencv-python>=4.8.0
+torch>=2.1.0
+torchvision>=0.16.0
+transformers>=4.40.0
+ultralytics>=8.2.0
+pillow>=10.0.0
+
+# Síntesis de voz en Windows (SAPI) y fallback multiplataforma
+pywin32>=306; sys_platform == 'win32'
+pypiwin32>=223; sys_platform == 'win32'
+pyttsx3>=2.90

@@ -1,0 +1,8 @@
+{
+  "a": 1.0,
+  "b": 0.0,
+  "formula": "dist_real = 1.0000 * valor_modelo + 0.0000",
+  "puntos": [],
+  "nota": "Calibración inicial neutra. Ejecute 'python main.py calibrate' para ajustar a su cámara."
+}
+
