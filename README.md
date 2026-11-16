@@ -26,7 +26,7 @@ El backend es el cerebro y el frontend es un cliente reemplazable.
 Camara / voz / QR
         |
         v
-Frontend React Native + Expo
+Frontend React Native con módulos Expo, distribuido como APK Android independiente
         |
         v
 Backend FastAPI
@@ -45,7 +45,7 @@ Esto permite cambiar Expo por una app nativa, gafas u otro dispositivo sin rehac
 ```text
 SensusAI/
   backend/       API FastAPI, IA visual, comandos y rutas espaciales
-  frontend/      App React Native + Expo Go
+  frontend/      App React Native para APK Android (Expo Go no requerido)
   docs/          Contratos, arquitectura, seguridad y guias operativas
   contexto/      Contexto maestro para desarrolladores e IAs
   .env.example   Variables de entorno de referencia
@@ -66,17 +66,16 @@ python backend\app.py
 
 Comprueba `http://localhost:8000/health`. La documentacion interactiva esta en `http://localhost:8000/docs`.
 
-### Frontend
+### APK Android
 
 En otra terminal:
 
 ```powershell
-cd "C:\proyecto para ciegos app\SensusAI\frontend"
-npm install
-npx expo start
+cd "C:\proyecto para ciegos app\SensusAI\frontend\android"
+.\gradlew.bat assembleRelease
 ```
 
-En `frontend/.env`, configura la URL del backend. En un celular fisico no uses `localhost`; usa la IP de la PC en la misma red o una URL HTTPS de tunel.
+El APK se conecta al backend YOLO de AWS. Expo Go no es necesario.
 
 ```text
 EXPO_PUBLIC_API_BASE_URL=http://TU_IP_LOCAL:8000
@@ -121,7 +120,7 @@ Documentos clave:
 - [Safety Governor](docs/SAFETY_GOVERNOR_V1.md): costo, frecuencia, repeticion y alertas.
 - [Comandos de voz](docs/VOICE_COMMANDS.md): arquitectura de comandos tipo `Sensus quiero ir al bano`.
 - [Estrategia de costo](docs/ESTRATEGIA_COSTO_MINIMO_TIEMPO_REAL.md): tiempo real sin consultar Gemini todo el tiempo.
-- [Pruebas en celular y APK](docs/PROBAR_EN_CELULAR_Y_APK.md): Expo Go y compilacion movil.
+- [Flujo oficial Android APK + YOLO](docs/FLUJO_ANDROID_APK_YOLO.md): compilacion local, entorno confirmado y conexion con AWS.
 - [Historial de cambios](docs/CHANGELOG.md): cambios recientes, correcciones y despliegues.
 
 ## Reglas de producto

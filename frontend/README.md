@@ -2,7 +2,7 @@
 
 > Autor del proyecto y dueño del codigo: **Carlos Jesus Ascarate Riega**
 
-Frontend movil de Sensus AI construido con React Native y Expo Go.
+Frontend movil de Sensus AI construido con React Native y modulos Expo, distribuido como APK Android independiente. Expo Go no es parte del flujo oficial.
 
 El frontend no contiene la inteligencia principal. Solo:
 
@@ -11,26 +11,25 @@ El frontend no contiene la inteligencia principal. Solo:
 - Envia la imagen al backend.
 - Lee en voz alta la respuesta del backend.
 
-## Ejecutar
+## Compilar APK Android local
 
 ```powershell
-cd "C:\proyecto para ciegos app\SensusAI\frontend"
-npm install
-npm start
+cd "C:\proyecto para ciegos app\SensusAI\frontend\android"
+.\gradlew.bat assembleRelease
 ```
 
-Luego escanea el QR con Expo Go.
+El APK queda en `android/app/build/outputs/apk/release/app-release.apk` y usa el backend YOLO de AWS.
 
 ## Importante para celular fisico
 
-En un celular real, `localhost` apunta al celular, no a la PC. Cambia `apiBaseUrl` en `app.json` por la IP de tu computadora en la red local:
+La app ya está configurada para usar la API pública de AWS:
 
 ```json
-"apiBaseUrl": "http://192.168.1.50:8000"
+"apiBaseUrl": "http://35.153.208.142:8000"
 ```
 
 El backend debe estar corriendo en:
 
 ```text
-http://TU_IP_LOCAL:8000
+http://35.153.208.142:8000
 ```
