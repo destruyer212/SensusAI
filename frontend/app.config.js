@@ -24,6 +24,9 @@ export default {
         projectId: "d850ac17-8ba5-4676-b1d5-483c42890e90",
       },
     },
-    plugins: ["expo-status-bar", "react-native-vision-camera"],
+    plugins: [
+      "expo-status-bar",
+      ["react-native-vision-camera", { enableFrameProcessors: true }],
+    ],
   },
 };

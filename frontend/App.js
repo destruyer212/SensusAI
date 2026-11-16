@@ -11,7 +11,9 @@ import {
   Vibration,
   View,
 } from "react-native";
-import { CameraView, useCameraPermissions } from "expo-camera";
+import Camera from "react-native-vision-camera/lib/commonjs/Camera";
+import { useCameraDevice } from "react-native-vision-camera/lib/commonjs/hooks/useCameraDevice";
+import { useCameraPermission } from "react-native-vision-camera/lib/commonjs/hooks/useCameraPermission";
 import * as Speech from "expo-speech";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 
@@ -55,13 +57,16 @@ export default function App() {
   const fastVisionEnabledRef = useRef(false);
   const visionSessionRef = useRef(`mobile-${Date.now()}`);
   const lastSpokenRef = useRef({ text: "", at: 0 });
+  const speechBusyRef = useRef(false);
+  const pendingSpeechRef = useRef(null);
   const lastRiskRef = useRef("unknown");
-  const [permission, requestPermission] = useCameraPermissions();
+  const { hasPermission, requestPermission } = useCameraPermission();
+  const [cameraFacing, setCameraFacing] = useState("back");
+  const device = useCameraDevice(cameraFacing);
   const [isRealtime, setIsRealtime] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [fastVisionEnabled, setFastVisionEnabled] = useState(false);
-  const [cameraFacing, setCameraFacing] = useState("back");
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [status, setStatus] = useState("Camara pendiente");
   const [lastResult, setLastResult] = useState("Concede permiso de camara para iniciar Sensus AI.");
@@ -75,7 +80,7 @@ export default function App() {
   }, [activeTask]);
 
   useEffect(() => {
-    if (permission && !permission.granted && permission.canAskAgain) {
+    if (!hasPermission) {
       requestPermission();
     }
 
@@ -83,8 +88,10 @@ export default function App() {
       if (realtimeTimer.current) clearInterval(realtimeTimer.current);
       realtimeActiveRef.current = false;
       Speech.stop();
+      speechBusyRef.current = false;
+      pendingSpeechRef.current = null;
     };
-  }, [permission, requestPermission]);
+  }, [hasPermission, requestPermission]);
 
   useEffect(() => {
     getVisionCapabilities()
@@ -108,13 +115,37 @@ export default function App() {
 
     if (!force && isRepeat && tooSoon && !isUrgent) return;
 
+    const priority = force || riskLevelOverride === "danger" ? 3 : isUrgent ? 2 : 1;
+    const pending = pendingSpeechRef.current;
+    if (speechBusyRef.current) {
+      if (!pending || priority >= pending.priority) {
+        pendingSpeechRef.current = { text, force, riskLevelOverride, priority };
+      }
+      return;
+    }
+
     lastSpokenRef.current = { text: normalized, at: now };
-    Speech.stop();
+    speechBusyRef.current = true;
     Speech.speak(text, {
       language: "es-PE",
       rate: 1,
       pitch: 1,
+      onDone: flushPendingSpeech,
+      onStopped: flushPendingSpeech,
+      onError: flushPendingSpeech,
     });
+  }
+
+  function flushPendingSpeech() {
+    speechBusyRef.current = false;
+    const pending = pendingSpeechRef.current;
+    pendingSpeechRef.current = null;
+    if (pending) {
+      speak(pending.text, {
+        force: pending.force,
+        riskLevelOverride: pending.riskLevelOverride,
+      });
+    }
   }
 
   function handleAnalysisResult(result) {
@@ -153,14 +184,16 @@ export default function App() {
       isAnalyzingRef.current = true;
       setIsAnalyzing(true);
       setStatus("Analizando entorno");
-      const photo = await cameraRef.current.takePictureAsync({
-        quality: source === "realtime" ? 0.34 : 0.5,
-        skipProcessing: true,
+      // VisionCamera mantiene el video nativo activo y toma un snapshot del
+      // preview sin abrir/cerrar una captura de foto en cada ciclo.
+      const snapshot = await cameraRef.current.takeSnapshot({
+        quality: source === "realtime" ? 55 : 75,
       });
+      const imageUri = snapshot.path.startsWith("file://") ? snapshot.path : `file://${snapshot.path}`;
 
       const result = source === "realtime" && fastVisionEnabledRef.current
-        ? await realtimeDetectScene(photo.uri, visionSessionRef.current)
-        : await analyzeScene(photo.uri, taskOverride);
+        ? await realtimeDetectScene(imageUri, visionSessionRef.current)
+        : await analyzeScene(imageUri, taskOverride);
       const responseAge = Date.now() - startedAt;
       if (requestId !== requestSeqRef.current) return;
       if (source === "realtime" && responseAge > REALTIME_MAX_RESPONSE_AGE_MS) {
@@ -330,11 +363,7 @@ export default function App() {
     }, delay);
   }
 
-  if (!permission) {
-    return <LoadingScreen text="Preparando permisos" />;
-  }
-
-  if (!permission.granted) {
+  if (!hasPermission) {
     return (
       <SafeAreaView style={styles.permissionScreen}>
         <ExpoStatusBar style="light" />
@@ -367,24 +396,25 @@ export default function App() {
         </View>
 
         <View style={styles.cameraPanel}>
-          <CameraView
+          {device ? <Camera
             ref={cameraRef}
             style={styles.cameraPreview}
-            facing={cameraFacing}
-            mode="picture"
-            active={permission.granted}
-            onCameraReady={() => {
+            device={device}
+            isActive={hasPermission}
+            photo={true}
+            video={true}
+            onInitialized={() => {
               setIsCameraReady(true);
-              setStatus("Camara lista");
+              setStatus("Camara nativa lista");
             }}
-            onMountError={(event) => {
-              const message = `No pude abrir la camara: ${event.nativeEvent?.message || "permiso o dispositivo no disponible"}`;
+            onError={(error) => {
+              const message = `No pude abrir la camara: ${error.message || "dispositivo no disponible"}`;
               setIsCameraReady(false);
               setStatus("Camara no disponible");
               setLastResult(message);
               speak(message);
             }}
-          />
+          /> : <View style={styles.cameraPreview} />}
           <View style={styles.cameraBadge}>
             <Text style={styles.cameraBadgeText}>
               {isRealtime ? "Tiempo real activo" : isCameraReady ? "Visor camara" : "Cargando camara"}
