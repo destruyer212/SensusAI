@@ -427,7 +427,7 @@ export default function App() {
           {!isCameraReady ? (
             <View style={styles.cameraNotice}>
               <ActivityIndicator color={colors.accent} />
-              <Text style={styles.cameraNoticeText}>Cargando camara. Si la pantalla sigue negra, revisa permisos de Expo Go.</Text>
+              <Text style={styles.cameraNoticeText}>Cargando camara nativa. Si la pantalla sigue negra, revisa el permiso de camara del APK.</Text>
             </View>
           ) : null}
 
