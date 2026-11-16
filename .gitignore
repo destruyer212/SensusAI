@@ -16,6 +16,7 @@ frontend/dist/
 frontend/android/
 frontend/ios/
 SensusAI-development.apk
+SensusAI-YOLO-local-arm64.apk
 npm-debug.log*
 
 # Modelos descargados localmente (no subir pesos binarios al repositorio)
