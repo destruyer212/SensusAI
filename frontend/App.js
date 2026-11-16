@@ -14,10 +14,6 @@ import {
 import Camera from "react-native-vision-camera/lib/commonjs/Camera";
 import { useCameraDevice } from "react-native-vision-camera/lib/commonjs/hooks/useCameraDevice";
 import { useCameraPermission } from "react-native-vision-camera/lib/commonjs/hooks/useCameraPermission";
-import { useCameraFormat } from "react-native-vision-camera/lib/commonjs/hooks/useCameraFormat";
-import { useFrameProcessor } from "react-native-vision-camera/lib/commonjs/hooks/useFrameProcessor";
-import { runAtTargetFps } from "react-native-vision-camera/lib/commonjs/frame-processors/runAtTargetFps";
-import { useRunOnJS } from "react-native-worklets-core/lib/commonjs/hooks/useRunOnJS";
 import * as Speech from "expo-speech";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 
@@ -29,7 +25,6 @@ import {
   getRoute,
   interpretCommand,
   resolveQr,
-  realtimeDetectFrame,
 } from "./src/api/sensusClient";
 import { colors } from "./src/theme/colors";
 
@@ -45,15 +40,12 @@ export default function App() {
   const fastVisionEnabledRef = useRef(false);
   const visionSessionRef = useRef(`mobile-${Date.now()}`);
   const lastSpokenRef = useRef({ text: "", at: 0 });
-  const frameUploadBusyRef = useRef(false);
-  const lastFrameSentAtRef = useRef(0);
   const speechBusyRef = useRef(false);
   const pendingSpeechRef = useRef(null);
   const lastRiskRef = useRef("unknown");
   const { hasPermission, requestPermission } = useCameraPermission();
   const [cameraFacing, setCameraFacing] = useState("back");
   const device = useCameraDevice(cameraFacing);
-  const format = useCameraFormat(device, [{ videoResolution: { width: 640, height: 480 } }, { fps: 15 }]);
   const [isRealtime, setIsRealtime] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isCameraReady, setIsCameraReady] = useState(false);
@@ -137,41 +129,6 @@ export default function App() {
       });
     }
   }
-
-  async function processNativeFrame(buffer, width, height, bytesPerRow) {
-    if (!realtimeActiveRef.current || !fastVisionEnabledRef.current || frameUploadBusyRef.current) return;
-    const now = Date.now();
-    if (now - lastFrameSentAtRef.current < 450) return;
-    frameUploadBusyRef.current = true;
-    lastFrameSentAtRef.current = now;
-    try {
-      const result = await realtimeDetectFrame(
-        buffer,
-        width,
-        height,
-        bytesPerRow,
-        visionSessionRef.current,
-      );
-      if (realtimeActiveRef.current) handleAnalysisResult(result);
-    } catch (error) {
-      console.error("frame processor realtime error", error);
-      if (realtimeActiveRef.current) setStatus("YOLO esperando conexion");
-    } finally {
-      frameUploadBusyRef.current = false;
-    }
-  }
-
-  const onNativeFrame = useRunOnJS(processNativeFrame, [isRealtime, fastVisionEnabled]);
-  const frameProcessor = useFrameProcessor((frame) => {
-    "worklet";
-    runAtTargetFps(2, () => {
-      "worklet";
-      if (isRealtime) {
-        const buffer = frame.toArrayBuffer();
-        onNativeFrame(buffer, frame.width, frame.height, frame.bytesPerRow);
-      }
-    });
-  }, [isRealtime, onNativeFrame]);
 
   function handleAnalysisResult(result) {
     const nextDetections = Array.isArray(result.detections) ? result.detections : [];
@@ -356,7 +313,6 @@ export default function App() {
       setStatus("Video YOLO nativo iniciando");
     } else {
       requestSeqRef.current += 1;
-      frameUploadBusyRef.current = false;
       setStatus("Video YOLO detenido");
     }
   }
@@ -398,12 +354,9 @@ export default function App() {
             ref={cameraRef}
             style={styles.cameraPreview}
             device={device}
-            format={format}
             isActive={hasPermission}
             photo={true}
             video={true}
-            pixelFormat={isRealtime ? "rgb" : "yuv"}
-            frameProcessor={isRealtime ? frameProcessor : undefined}
             onInitialized={() => {
               setIsCameraReady(true);
               setStatus("Camara nativa lista");

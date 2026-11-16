@@ -26,7 +26,7 @@ export default {
     },
     plugins: [
       "expo-status-bar",
-      ["react-native-vision-camera", { enableFrameProcessors: true }],
+      ["react-native-vision-camera", { enableFrameProcessors: false }],
     ],
   },
 };
