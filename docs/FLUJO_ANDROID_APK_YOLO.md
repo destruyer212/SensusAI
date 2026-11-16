@@ -12,7 +12,7 @@ Expo sigue apareciendo como parte del stack interno porque el proyecto usa módu
 APK Android instalado
         |
         v
-API pública de AWS EC2: http://35.153.208.142:8000
+API pública de AWS EC2: http://54.211.201.45:8000
         |
         v
 FastAPI + YOLO11n (principal)
@@ -30,7 +30,7 @@ Gemini está apagado en la EC2 para esta etapa. YOLO es el motor principal y la 
 - Se generó un APK release local con Gradle.
 - Se limitó la compilación local a `arm64-v8a` para evitar el fallo de CMake/Ninja con `armeabi-v7a` de VisionCamera.
 - Se configuró `frontend/android/local.properties` para que Gradle encuentre el Android SDK de esta computadora.
-- Se habilitó tráfico HTTP claro en el APK únicamente para esta prueba, porque la EC2 temporal usa `http://35.153.208.142:8000`; sin esto Android muestra `CLEARTEXT communication ... not permitted`.
+- Se habilitó tráfico HTTP claro en el APK únicamente para esta prueba, porque la EC2 temporal usa `http://54.211.201.45:8000`; sin esto Android muestra `CLEARTEXT communication ... not permitted`.
 - El backend responde con `yolo_enabled: true`, `yolo_available: true` y `gemini_enabled: false`.
 
 ## Entorno local confirmado
@@ -76,7 +76,7 @@ C:\proyecto para ciegos app\SensusAI\SensusAI-YOLO-local-arm64.apk
 ## Comprobación del backend
 
 ```powershell
-Invoke-RestMethod http://35.153.208.142:8000/health
+Invoke-RestMethod http://54.211.201.45:8000/health
 ```
 
 Resultado esperado:

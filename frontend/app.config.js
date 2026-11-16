@@ -19,7 +19,7 @@ export default {
       usesCleartextTraffic: true,
     },
     extra: {
-      apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL || "http://35.153.208.142:8000",
+      apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL || "http://54.211.201.45:8000",
       eas: {
         projectId: "d850ac17-8ba5-4676-b1d5-483c42890e90",
       },
