@@ -6,8 +6,8 @@
 - La cámara usa `react-native-vision-camera` y mantiene el preview nativo activo.
 - La cámara se configura con `isActive`, `photo` y `video`; el APK se compila con VisionCamera y `react-native-worklets-core` habilitados.
 - El modo tiempo real ya no llama `takeSnapshot()`.
-- El `frameProcessor` de VisionCamera recibe frames RGB del stream nativo y los muestrea a 2 FPS para no bloquear la cámara.
-- El frame se envía como `application/octet-stream` al endpoint `/api/vision/realtime-frame`; no se usa multipart ni una foto capturada.
+- El backend ya tiene el endpoint binario `/api/vision/realtime-frame` y fue probado con YOLO + profundidad.
+- En el APK estable actual el puente `frameProcessor` está desactivado para evitar el cierre de la app al conceder permiso de cámara. No se debe presentar este APK como realtime YOLO activo.
 - Se conserva una sola petición de análisis a la vez y se descartan respuestas tardías.
 - La voz ahora tiene cola y prioridad: una alerta de peligro puede adelantar una lectura normal, pero las detecciones normales no se pisan entre sí.
 
@@ -18,20 +18,21 @@ El sensor de cámara transmite video continuamente al componente nativo. El YOLO
 El flujo actual es:
 
 ```text
-video nativo VisionCamera
+video nativo VisionCamera (APK estable)
         |
-        +-- frameProcessor RGB @ 2 FPS
+        +-- preview de cámara validado
+
+backend preparado para la siguiente compilación:
+frameProcessor RGB @ 2 FPS
+        |
+        +-- buffer binario /api/vision/realtime-frame
                 |
-                +-- buffer binario /api/vision/realtime-frame
-                        |
-                        +-- YOLO + profundidad en AWS
-                                |
-                                +-- detección/evento + voz priorizada
+                +-- YOLO + profundidad en AWS
 ```
 
 ## Límite actual de rendimiento
 
-La cámara sí es continua. La inferencia está limitada a aproximadamente 2 FPS por la CPU de la instancia actual y por el costo de transferir buffers RGB. Para 10–30 FPS reales hay dos opciones: ejecutar YOLO TFLite/ONNX dentro del APK, o cambiar AWS a una instancia con GPU. La app ya quedó separada para que el transporte no tenga que cambiar cuando se incorpore inferencia on-device.
+Cuando se reactive el frame processor, la inferencia remota estará limitada a aproximadamente 2 FPS por la CPU de la instancia actual y por el costo de transferir buffers RGB. Para 10–30 FPS reales hay dos opciones: ejecutar YOLO TFLite/ONNX dentro del APK, o cambiar AWS a una instancia con GPU.
 
 ## Compilación local
 
