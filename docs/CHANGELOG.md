@@ -2,6 +2,14 @@
 
 > Autor del proyecto y dueño del codigo: **Carlos Jesus Ascarate Riega**
 
+## 2026-11-16 — EC2 ampliada para YOLO + profundidad
+
+- Se cambió `sensus-ai-yolo-depth` a `m7i-flex.large` (2 vCPU, 8 GiB RAM).
+- Se activó `DEPTH_ENABLED=true` y se instalaron `transformers` y dependencias de Depth Anything V2 en la EC2.
+- YOLO sigue siendo el motor principal; Gemini queda desactivado.
+- La nueva API temporal es `http://100.24.55.64:8000`.
+- La estimación de cómputo es de aproximadamente US$16.09 por 168 horas, antes de EBS/red/impuestos.
+
 ## 2026-11-16 — Pipeline híbrido de profundidad
 
 - Integrado `POST /api/vision/realtime` en la API FastAPI existente.
@@ -72,6 +80,6 @@ La causa era que `parameters` no era compatible con la implementación de `uploa
 - YOLO11n quedó instalado y disponible en `/api/vision/fast-detect` y `/api/vision/realtime`.
 - Gemini y Depth Anything quedaron apagados en EC2 por latencia y memoria.
 - Se añadió swap de 2 GiB para reducir fallos por memoria durante las pruebas.
-- Se actualizó la app Android para usar `http://54.211.201.45:8000`.
+- Se actualizó la app Android para usar la IP temporal de la EC2 vigente en ese despliegue.
 - Se terminó la instancia antigua `sensus-ai-backend`.
 

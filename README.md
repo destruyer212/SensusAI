@@ -29,11 +29,11 @@ Camara / voz / QR
 Frontend React Native con módulos Expo, distribuido como APK Android independiente
         |
         v
-AWS EC2 t3.small — Sensus AI YOLO
+AWS EC2 m7i-flex.large — Sensus AI YOLO + Depth
   |
   +--> FastAPI + YOLO11n + Safety Governor
   +--> Spatial Core / Command Core
-  +--> Profundidad opcional (desactivada en la EC2 pequeña)
+  +--> Depth Anything V2 Metric Indoor Small (distancia monocular aproximada)
   |
   v
 Respuesta corta para voz, vibración y alerta visual
@@ -48,17 +48,23 @@ calibración para producir distancias confiables.
 
 ```text
 Nombre EC2: sensus-ai-yolo-depth
-Tipo: t3.small (2 vCPU, 2 GiB RAM + swap)
-API: http://54.211.201.45:8000
-Health: http://54.211.201.45:8000/health
-Docs: http://54.211.201.45:8000/docs
+Tipo: m7i-flex.large (2 vCPU, 8 GiB RAM + swap)
+API: http://100.24.55.64:8000
+Health: http://100.24.55.64:8000/health
+Docs: http://100.24.55.64:8000/docs
+Instancia: i-0fdbf603d2f1c6c0e
 YOLO: activo
 Gemini: apagado
-Depth Anything: apagado en EC2
+Depth Anything: activo en EC2 (CPU; distancia monocular aproximada)
 ```
 
 La IP es temporal. Para una versión estable se debe usar Elastic IP o un dominio
 con HTTPS.
+
+El precio observado para `m7i-flex.large` es aproximadamente US$0.0958 por hora,
+unos US$16.09 por 168 horas de una semana, sin contar pequeñas variaciones de
+EBS, red o impuestos. AWS aplica primero los créditos disponibles; si se agotan,
+el uso posterior puede cobrarse según el plan de la cuenta.
 
 ## Estructura
 
@@ -98,7 +104,7 @@ cd "C:\proyecto para ciegos app\SensusAI\frontend\android"
 El APK se conecta al backend YOLO de AWS. Expo Go no es necesario.
 
 ```text
-EXPO_PUBLIC_API_BASE_URL=http://54.211.201.45:8000
+EXPO_PUBLIC_API_BASE_URL=http://100.24.55.64:8000
 ```
 
 ### Gemini
