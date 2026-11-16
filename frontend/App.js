@@ -402,8 +402,8 @@ export default function App() {
             isActive={hasPermission}
             photo={true}
             video={true}
-            pixelFormat="rgb"
-            frameProcessor={frameProcessor}
+            pixelFormat={isRealtime ? "rgb" : "yuv"}
+            frameProcessor={isRealtime ? frameProcessor : undefined}
             onInitialized={() => {
               setIsCameraReady(true);
               setStatus("Camara nativa lista");
