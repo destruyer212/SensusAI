@@ -30,6 +30,7 @@ Gemini está apagado en la EC2 para esta etapa. YOLO es el motor principal y la 
 - Se generó un APK release local con Gradle.
 - Se limitó la compilación local a `arm64-v8a` para evitar el fallo de CMake/Ninja con `armeabi-v7a` de VisionCamera.
 - Se configuró `frontend/android/local.properties` para que Gradle encuentre el Android SDK de esta computadora.
+- Se habilitó tráfico HTTP claro en el APK únicamente para esta prueba, porque la EC2 temporal usa `http://35.153.208.142:8000`; sin esto Android muestra `CLEARTEXT communication ... not permitted`.
 - El backend responde con `yolo_enabled: true`, `yolo_available: true` y `gemini_enabled: false`.
 
 ## Entorno local confirmado
@@ -68,6 +69,7 @@ C:\proyecto para ciegos app\SensusAI\SensusAI-YOLO-local-arm64.apk
 - El APK no necesita Expo Go.
 - El APK no necesita que esta computadora esté encendida para analizar: la API corre en AWS.
 - Si cambia la IP pública de la EC2, hay que actualizar la URL y recompilar el APK. Para evitarlo después conviene asignar una Elastic IP o un dominio HTTPS.
+- Antes de una prueba pública real, se debe reemplazar HTTP por HTTPS y quitar `usesCleartextTraffic`.
 - `frontend/android/local.properties` es configuración de esta computadora y no debe subirse a GitHub.
 - La compilación EAS en la nube es opcional; no es el flujo oficial de esta prueba local.
 

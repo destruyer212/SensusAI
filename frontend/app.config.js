@@ -16,6 +16,7 @@ export default {
     android: {
       package: "com.sensusai.mobile",
       permissions: ["CAMERA", "RECORD_AUDIO"],
+      usesCleartextTraffic: true,
     },
     extra: {
       apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL || "http://35.153.208.142:8000",
