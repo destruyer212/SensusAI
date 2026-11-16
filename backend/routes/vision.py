@@ -1,11 +1,11 @@
-from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, File, Form, HTTPException, Query, Request, UploadFile, status
 from starlette.concurrency import run_in_threadpool
 
 from services.vision_ai import analyze_scene
 from services.safety_governor import governor
 from services.yolo_detector import yolo_detector
 from services.depth_estimator import depth_estimator
-from services.vision_pipeline import realtime_analyze
+from services.vision_pipeline import realtime_analyze, realtime_analyze_rgb_frame
 from settings import settings
 
 
@@ -86,3 +86,34 @@ async def fast_detect(
         return governor.evaluate(detections, session_id=session_id or session_query or "default")
     except RuntimeError as error:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(error)) from error
+
+
+@router.post("/realtime-frame")
+async def realtime_frame(
+    request: Request,
+    width: int = Query(..., ge=1, le=1920),
+    height: int = Query(..., ge=1, le=1920),
+    bytes_per_row: int = Query(..., ge=1, le=16384),
+    session_id: str | None = Query(default=None),
+) -> dict:
+    """Run YOLO on a native VisionCamera RGB frame buffer.
+
+    This endpoint deliberately accepts application/octet-stream instead of a
+    multipart photo. The phone keeps its camera stream active and sends only
+    the sampled frame buffer needed by the realtime detector.
+    """
+    frame_bytes = await request.body()
+    expected_max = bytes_per_row * height
+    if len(frame_bytes) == 0 or len(frame_bytes) > expected_max:
+        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="Buffer de frame invalido.")
+    try:
+        return await run_in_threadpool(
+            realtime_analyze_rgb_frame,
+            frame_bytes,
+            width=width,
+            height=height,
+            bytes_per_row=bytes_per_row,
+            session_id=session_id or "default",
+        )
+    except (RuntimeError, ValueError) as error:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(error)) from error

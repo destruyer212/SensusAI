@@ -23,6 +23,27 @@ export async function realtimeDetectScene(imageUri, sessionId = "mobile-default"
   return uploadImage("/api/vision/realtime", imageUri, { session_id: sessionId });
 }
 
+export async function realtimeDetectFrame(frameBuffer, width, height, bytesPerRow, sessionId = "mobile-default") {
+  const query = new URLSearchParams({
+    width: String(width),
+    height: String(height),
+    bytes_per_row: String(bytesPerRow),
+    session_id: sessionId,
+  }).toString();
+  const response = await fetch(`${API_BASE_URL}/api/vision/realtime-frame?${query}`, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/octet-stream",
+    },
+    body: frameBuffer,
+  });
+  if (!response.ok) {
+    throw new Error(`Sensus API frame error: ${response.status} ${await response.text()}`);
+  }
+  return response.json();
+}
+
 export async function analyzeScene(imageUri, task = "navigation") {
   return uploadImage("/api/vision/analyze", imageUri, { task });
 }

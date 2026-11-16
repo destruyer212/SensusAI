@@ -14,42 +14,30 @@ import {
 import Camera from "react-native-vision-camera/lib/commonjs/Camera";
 import { useCameraDevice } from "react-native-vision-camera/lib/commonjs/hooks/useCameraDevice";
 import { useCameraPermission } from "react-native-vision-camera/lib/commonjs/hooks/useCameraPermission";
+import { useCameraFormat } from "react-native-vision-camera/lib/commonjs/hooks/useCameraFormat";
+import { useFrameProcessor } from "react-native-vision-camera/lib/commonjs/hooks/useFrameProcessor";
+import { runAtTargetFps } from "react-native-vision-camera/lib/commonjs/frame-processors/runAtTargetFps";
+import { useRunOnJS } from "react-native-worklets-core/lib/commonjs/hooks/useRunOnJS";
 import * as Speech from "expo-speech";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 
 import {
   analyzeScene,
-  realtimeDetectScene,
   getApiBaseUrl,
   getVisionCapabilities,
   getEmergencyGuidance,
   getRoute,
   interpretCommand,
   resolveQr,
+  realtimeDetectFrame,
 } from "./src/api/sensusClient";
 import { colors } from "./src/theme/colors";
 
 const OFFICE_TEST_QR = "SENSUS:office_demo:office_entrance";
-const REALTIME_MAX_RESPONSE_AGE_MS = 8000;
-const REALTIME_INTERVALS = {
-  clear: 9000,
-  notice: 6500,
-  caution: 3800,
-  danger: 2600,
-  unknown: 7000,
-};
-const YOLO_REALTIME_INTERVALS = {
-  clear: 1400,
-  notice: 900,
-  caution: 550,
-  danger: 350,
-  unknown: 1200,
-};
 const MIN_REPEAT_SPEECH_MS = 12000;
 
 export default function App() {
   const cameraRef = useRef(null);
-  const realtimeTimer = useRef(null);
   const isAnalyzingRef = useRef(false);
   const realtimeActiveRef = useRef(false);
   const activeTaskRef = useRef("navigation");
@@ -57,12 +45,15 @@ export default function App() {
   const fastVisionEnabledRef = useRef(false);
   const visionSessionRef = useRef(`mobile-${Date.now()}`);
   const lastSpokenRef = useRef({ text: "", at: 0 });
+  const frameUploadBusyRef = useRef(false);
+  const lastFrameSentAtRef = useRef(0);
   const speechBusyRef = useRef(false);
   const pendingSpeechRef = useRef(null);
   const lastRiskRef = useRef("unknown");
   const { hasPermission, requestPermission } = useCameraPermission();
   const [cameraFacing, setCameraFacing] = useState("back");
   const device = useCameraDevice(cameraFacing);
+  const format = useCameraFormat(device, [{ videoResolution: { width: 640, height: 480 } }, { fps: 15 }]);
   const [isRealtime, setIsRealtime] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isCameraReady, setIsCameraReady] = useState(false);
@@ -85,7 +76,6 @@ export default function App() {
     }
 
     return () => {
-      if (realtimeTimer.current) clearInterval(realtimeTimer.current);
       realtimeActiveRef.current = false;
       Speech.stop();
       speechBusyRef.current = false;
@@ -148,6 +138,41 @@ export default function App() {
     }
   }
 
+  async function processNativeFrame(buffer, width, height, bytesPerRow) {
+    if (!realtimeActiveRef.current || !fastVisionEnabledRef.current || frameUploadBusyRef.current) return;
+    const now = Date.now();
+    if (now - lastFrameSentAtRef.current < 450) return;
+    frameUploadBusyRef.current = true;
+    lastFrameSentAtRef.current = now;
+    try {
+      const result = await realtimeDetectFrame(
+        buffer,
+        width,
+        height,
+        bytesPerRow,
+        visionSessionRef.current,
+      );
+      if (realtimeActiveRef.current) handleAnalysisResult(result);
+    } catch (error) {
+      console.error("frame processor realtime error", error);
+      if (realtimeActiveRef.current) setStatus("YOLO esperando conexion");
+    } finally {
+      frameUploadBusyRef.current = false;
+    }
+  }
+
+  const onNativeFrame = useRunOnJS(processNativeFrame, [isRealtime, fastVisionEnabled]);
+  const frameProcessor = useFrameProcessor((frame) => {
+    "worklet";
+    runAtTargetFps(2, () => {
+      "worklet";
+      if (isRealtime) {
+        const buffer = frame.toArrayBuffer();
+        onNativeFrame(buffer, frame.width, frame.height, frame.bytesPerRow);
+      }
+    });
+  }, [isRealtime, onNativeFrame]);
+
   function handleAnalysisResult(result) {
     const nextDetections = Array.isArray(result.detections) ? result.detections : [];
     const nextRisk = result.risk_level || "unknown";
@@ -167,7 +192,7 @@ export default function App() {
     });
   }
 
-  async function scanScene(taskOverride = activeTaskRef.current, source = "manual") {
+  async function scanScene(taskOverride = activeTaskRef.current) {
     if (!cameraRef.current || isAnalyzingRef.current) return;
     if (!isCameraReady) {
       const message = "La camara aun no esta lista. Espera un momento e intenta otra vez.";
@@ -180,26 +205,15 @@ export default function App() {
     try {
       const requestId = requestSeqRef.current + 1;
       requestSeqRef.current = requestId;
-      const startedAt = Date.now();
       isAnalyzingRef.current = true;
       setIsAnalyzing(true);
       setStatus("Analizando entorno");
-      // VisionCamera mantiene el video nativo activo y toma un snapshot del
-      // preview sin abrir/cerrar una captura de foto en cada ciclo.
       const snapshot = await cameraRef.current.takeSnapshot({
-        quality: source === "realtime" ? 55 : 75,
+        quality: 75,
       });
       const imageUri = snapshot.path.startsWith("file://") ? snapshot.path : `file://${snapshot.path}`;
-
-      const result = source === "realtime" && fastVisionEnabledRef.current
-        ? await realtimeDetectScene(imageUri, visionSessionRef.current)
-        : await analyzeScene(imageUri, taskOverride);
-      const responseAge = Date.now() - startedAt;
+      const result = await analyzeScene(imageUri, taskOverride);
       if (requestId !== requestSeqRef.current) return;
-      if (source === "realtime" && responseAge > REALTIME_MAX_RESPONSE_AGE_MS) {
-        setStatus("Respuesta tarde descartada");
-        return;
-      }
       handleAnalysisResult(result);
     } catch (error) {
       console.error(error);
@@ -338,29 +352,13 @@ export default function App() {
     setIsRealtime(next);
     realtimeActiveRef.current = next;
 
-    if (realtimeTimer.current) {
-      clearTimeout(realtimeTimer.current);
-      realtimeTimer.current = null;
-    }
-
     if (next) {
-      setStatus("Tiempo real iniciando");
-      scanScene(activeTaskRef.current, "realtime").finally(scheduleRealtimeScan);
+      setStatus("Video YOLO nativo iniciando");
     } else {
       requestSeqRef.current += 1;
-      setStatus("Tiempo real detenido");
+      frameUploadBusyRef.current = false;
+      setStatus("Video YOLO detenido");
     }
-  }
-
-  function scheduleRealtimeScan() {
-    if (!realtimeActiveRef.current) return;
-    const intervals = fastVisionEnabledRef.current ? YOLO_REALTIME_INTERVALS : REALTIME_INTERVALS;
-    const delay = intervals[lastRiskRef.current] || intervals.unknown;
-    realtimeTimer.current = setTimeout(async () => {
-      if (!realtimeActiveRef.current) return;
-      await scanScene(activeTaskRef.current, "realtime");
-      scheduleRealtimeScan();
-    }, delay);
   }
 
   if (!hasPermission) {
@@ -400,9 +398,12 @@ export default function App() {
             ref={cameraRef}
             style={styles.cameraPreview}
             device={device}
+            format={format}
             isActive={hasPermission}
             photo={true}
             video={true}
+            pixelFormat="rgb"
+            frameProcessor={frameProcessor}
             onInitialized={() => {
               setIsCameraReady(true);
               setStatus("Camara nativa lista");
