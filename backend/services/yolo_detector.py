@@ -11,7 +11,7 @@ from typing import Any
 
 from settings import ROOT_DIR, settings
 
-try:  # Optional so the existing Gemini backend stays deployable on t4g.micro.
+try:  # Optional so local installs can still run without the YOLO extras.
     from PIL import Image
 except ImportError:  # pragma: no cover
     Image = None

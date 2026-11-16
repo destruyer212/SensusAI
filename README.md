@@ -18,7 +18,7 @@ Sensus AI puede:
 - Leer respuestas por voz y mostrar detecciones en pantalla para depuracion.
 - Reducir costo y latencia con analisis adaptativo, evitando consultar la IA en cada instante.
 
-## Arquitectura en una frase
+## Arquitectura actual
 
 El backend es el cerebro y el frontend es un cliente reemplazable.
 
@@ -29,16 +29,36 @@ Camara / voz / QR
 Frontend React Native con módulos Expo, distribuido como APK Android independiente
         |
         v
-Backend FastAPI
-  |             |
-  v             v
-Vision IA     Spatial Core / Command Core
+AWS EC2 t3.small — Sensus AI YOLO
+  |
+  +--> FastAPI + YOLO11n + Safety Governor
+  +--> Spatial Core / Command Core
+  +--> Profundidad opcional (desactivada en la EC2 pequeña)
   |
   v
-Respuesta corta para voz, vibracion e interfaz
+Respuesta corta para voz, vibración y alerta visual
 ```
 
-Esto permite cambiar Expo por una app nativa, gafas u otro dispositivo sin rehacer la logica principal.
+El APK actual usa YOLO como motor principal. Gemini está desactivado en la instancia
+de prueba para reducir latencia, consumo y dependencia de una API externa. La
+profundidad monocular queda disponible en el código, pero requiere más memoria y
+calibración para producir distancias confiables.
+
+### Backend de prueba activo
+
+```text
+Nombre EC2: sensus-ai-yolo-depth
+Tipo: t3.small (2 vCPU, 2 GiB RAM + swap)
+API: http://54.211.201.45:8000
+Health: http://54.211.201.45:8000/health
+Docs: http://54.211.201.45:8000/docs
+YOLO: activo
+Gemini: apagado
+Depth Anything: apagado en EC2
+```
+
+La IP es temporal. Para una versión estable se debe usar Elastic IP o un dominio
+con HTTPS.
 
 ## Estructura
 
@@ -78,7 +98,7 @@ cd "C:\proyecto para ciegos app\SensusAI\frontend\android"
 El APK se conecta al backend YOLO de AWS. Expo Go no es necesario.
 
 ```text
-EXPO_PUBLIC_API_BASE_URL=http://TU_IP_LOCAL:8000
+EXPO_PUBLIC_API_BASE_URL=http://54.211.201.45:8000
 ```
 
 ### Gemini
@@ -96,6 +116,9 @@ Sin llave, el backend puede funcionar en modo demo segun la configuracion actual
 ```text
 GET  /health
 POST /api/vision/analyze
+GET  /api/vision/capabilities
+POST /api/vision/fast-detect
+POST /api/vision/realtime
 POST /api/command/interpret
 GET  /api/spatial/sites
 POST /api/spatial/qr

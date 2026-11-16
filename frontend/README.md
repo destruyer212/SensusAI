@@ -25,11 +25,11 @@ El APK queda en `android/app/build/outputs/apk/release/app-release.apk` y usa el
 La app ya está configurada para usar la API pública de AWS:
 
 ```json
-"apiBaseUrl": "http://35.153.208.142:8000"
+"apiBaseUrl": "http://54.211.201.45:8000"
 ```
 
 El backend debe estar corriendo en:
 
 ```text
-http://35.153.208.142:8000
+http://54.211.201.45:8000
 ```

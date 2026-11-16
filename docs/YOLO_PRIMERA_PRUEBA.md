@@ -5,8 +5,9 @@
 ## Qué queda listo hoy
 
 1. `POST /api/vision/fast-detect`: YOLO + decisión temporal del `SafetyGovernor`, sin llamar a Gemini.
-2. `POST /api/vision/analyze`: Gemini para comandos, lectura y escenas con contexto.
-3. `GET /api/vision/capabilities`: indica si cada motor está realmente activo.
+2. `POST /api/vision/realtime`: YOLO con el mismo gobernador temporal y profundidad opcional.
+3. `POST /api/vision/analyze`: ruta semántica opcional con Gemini.
+4. `GET /api/vision/capabilities`: indica si cada motor está realmente activo.
 
 La aplicación no debe asumir que YOLO funciona solo porque existe el endpoint. Debe consultar `capabilities`.
 
@@ -17,11 +18,13 @@ Desde `SensusAI`:
 ```powershell
 python -m pip install -r backend/requirements-yolo.txt
 $env:YOLO_ENABLED="true"
-$env:YOLO_MODEL_PATH="backend/models/yolo26n.pt"
+$env:YOLO_MODEL_PATH="backend/models/yolo11n.pt"
 python backend/app.py
 ```
 
-La primera ejecución descarga el peso pequeño si la librería lo necesita. Para el primer ensayo no se ejecuta en el `t4g.micro` de AWS: allí dejamos Gemini y corremos YOLO en el equipo local o en un worker.
+La primera ejecución descarga el peso pequeño si la librería lo necesita. La EC2
+actual usa `yolo11n.pt`, con `YOLO_IMAGE_SIZE=320`, Gemini apagado y profundidad
+desactivada para conservar memoria.
 
 ## Comprobación
 

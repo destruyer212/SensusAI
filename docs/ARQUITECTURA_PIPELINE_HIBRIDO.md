@@ -49,5 +49,8 @@ Face al primer arranque.
 
 ## Criterio de despliegue
 
-La EC2 `t4g.micro` permanece con Gemini y YOLO ligero. No se activa Depth
-Anything allí hasta medir RAM, tiempo de respuesta y estabilidad.
+La EC2 activa es `sensus-ai-yolo-depth`, una `t3.small` con 2 GiB de RAM y
+YOLO11n como motor principal. Gemini está desactivado y Depth Anything también
+queda desactivado en producción de prueba porque necesita más memoria y una
+calibración real por cámara. El código soporta ambos motores y puede activarse
+en una máquina con más RAM.

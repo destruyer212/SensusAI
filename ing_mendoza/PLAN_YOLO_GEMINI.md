@@ -69,7 +69,9 @@ POST /api/vision/fast-detect  ---->  YOLO pequeño (worker local)
 
 `fast-detect` no consume tokens de Gemini. Gemini se consulta por comando de voz, lectura, escena ambigua o cambio importante. No se envía cada frame: el cliente espera respuesta y descarta frames viejos.
 
-YOLO no se instala todavía en el EC2 `t4g.micro`: tiene poca memoria y debe seguir estable con Gemini. La primera inferencia YOLO se hará en el equipo local o en un worker separado.
+YOLO ya está instalado en la EC2 `t3.small` activa (`sensus-ai-yolo-depth`).
+Gemini permanece apagado en esta etapa y la primera inferencia se realiza en la
+misma API mediante `/api/vision/fast-detect` y `/api/vision/realtime`.
 
 ## Contrato de detección
 

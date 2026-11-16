@@ -6,18 +6,22 @@
 
 La actividad de Explore AWS y el despliegue de Sensus AI deben tratarse como dos cosas separadas. Para ganar el credito de EC2 no hace falta publicar toda la aplicacion. El backend puede desplegarse despues en una instancia propia y controlada.
 
-El backend usa Gemini mediante API. No ejecuta Gemini ni YOLO dentro de la instancia. La clave de Gemini debe permanecer en el `.env` del servidor y nunca en Expo, GitHub o una imagen Docker.
+La configuración actual ejecuta YOLO dentro de la instancia. Gemini está
+desactivado en la EC2 de prueba y la profundidad monocular es opcional. Cualquier
+clave de Gemini debe permanecer en el `.env` del servidor y nunca en Expo,
+GitHub o una imagen Docker.
 
 ## Arquitectura de prueba
 
 ```text
-Expo Go / React Native
+APK Android / React Native
         |
-        | HTTPS recomendado
+        | HTTP temporal para la prueba
         v
 EC2 + FastAPI :8000
         |
-        +--> Gemini API
+        +--> YOLO11n local
+        +--> Safety Governor
         +--> Spatial Core local
         +--> Command Core local
 ```
@@ -27,8 +31,8 @@ EC2 + FastAPI :8000
 Para una prueba pequeña:
 
 - Amazon Linux 2023 o Ubuntu 24.04.
-- `t4g.small` si la instancia soporta ARM y se necesita mas margen.
-- `t4g.micro` solo para una prueba muy ligera; tiene poca memoria.
+- `t3.small` para la prueba actual de YOLO: 2 vCPU y 2 GiB de RAM.
+- Depth Anything requiere una instancia con más memoria y no se activa en esta EC2.
 - Disco gp3 de 8 a 12 GB.
 - Puerto 8000 solo temporalmente y solo desde la IP de prueba.
 - Para uso real: HTTPS mediante un dominio y un reverse proxy.
@@ -69,12 +73,12 @@ GEMINI_MAX_OUTPUT_TOKENS=220
 MAX_UPLOAD_BYTES=4194304
 ```
 
-## Conectar Expo
+## Conectar el APK Android
 
 En `frontend/.env`:
 
 ```text
-EXPO_PUBLIC_API_BASE_URL=http://IP_PUBLICA:8000
+EXPO_PUBLIC_API_BASE_URL=http://54.211.201.45:8000
 ```
 
 Para produccion debe ser una URL HTTPS. Luego reiniciar Expo:

@@ -66,3 +66,12 @@ La causa era que `parameters` no era compatible con la implementación de `uploa
 - Restringir el puerto 8000 después de la prueba pública.
 - Rotar la clave de Gemini si fue expuesta o compartida fuera del servidor.
 - Terminar la instancia EC2 cuando finalice la prueba para evitar consumo innecesario.
+# 2026-11-16 — Despliegue YOLO en EC2 pequeña
+
+- Se dejó activa la instancia `sensus-ai-yolo-depth` (`t3.small`) como backend principal de prueba.
+- YOLO11n quedó instalado y disponible en `/api/vision/fast-detect` y `/api/vision/realtime`.
+- Gemini y Depth Anything quedaron apagados en EC2 por latencia y memoria.
+- Se añadió swap de 2 GiB para reducir fallos por memoria durante las pruebas.
+- Se actualizó la app Android para usar `http://54.211.201.45:8000`.
+- Se terminó la instancia antigua `sensus-ai-backend`.
+
