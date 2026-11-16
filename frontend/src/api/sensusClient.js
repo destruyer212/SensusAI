@@ -19,6 +19,10 @@ export async function fastDetectScene(imageUri, sessionId = "mobile-default") {
   return uploadImage("/api/vision/fast-detect", imageUri, { session_id: sessionId });
 }
 
+export async function realtimeDetectScene(imageUri, sessionId = "mobile-default") {
+  return uploadImage("/api/vision/realtime", imageUri, { session_id: sessionId });
+}
+
 export async function analyzeScene(imageUri, task = "navigation") {
   return uploadImage("/api/vision/analyze", imageUri, { task });
 }

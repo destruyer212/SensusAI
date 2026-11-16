@@ -13,6 +13,9 @@ frontend/node_modules/
 frontend/.expo/
 frontend/dist-check/
 frontend/dist/
+frontend/android/
+frontend/ios/
+SensusAI-development.apk
 npm-debug.log*
 
 # Modelos descargados localmente (no subir pesos binarios al repositorio)

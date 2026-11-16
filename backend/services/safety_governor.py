@@ -94,7 +94,10 @@ class SafetyGovernor:
         area = min(1.0, width * height)
         center_x = (x1 + x2) / 2
         bottom = y2
-        position = "izquierda" if center_x < 0.35 else "derecha" if center_x > 0.65 else "al frente"
+        distance_m = detection.get("distance_m")
+        if distance_m is not None:
+            distance_m = max(0.0, float(distance_m))
+        position = str(detection.get("position") or ("izquierda" if center_x < 0.35 else "derecha" if center_x > 0.65 else "al frente"))
         return {
             "label": label,
             "confidence": round(confidence, 3),
@@ -102,6 +105,8 @@ class SafetyGovernor:
             "area": round(area, 4),
             "position": position,
             "bottom": round(bottom, 4),
+            "distance_m": round(distance_m, 2) if distance_m is not None else None,
+            "zone": detection.get("zone"),
         }
 
     @staticmethod
@@ -110,8 +115,13 @@ class SafetyGovernor:
         area = item["area"]
         bottom = item["bottom"]
         growth = item["growth"]
+        distance_m = item.get("distance_m")
         if confidence < 0.35:
             return "unknown"
+        if distance_m is not None and distance_m <= 1.0:
+            return "danger"
+        if distance_m is not None and distance_m <= 2.0:
+            return "caution"
         # A large, central, low-in-frame object or a rapidly growing box is the
         # strongest visual proxy for an imminent collision.
         if (area >= 0.20 and bottom >= 0.72 and confidence >= 0.58) or (growth >= 0.12 and bottom >= 0.62):
@@ -125,9 +135,11 @@ class SafetyGovernor:
         if not top:
             return ""
         if risk == "danger":
-            return f"Detente. {top['label']} muy cerca {top['position']}."
+            distance = f" a {top['distance_m']:.1f} metros" if top.get("distance_m") is not None else " muy cerca"
+            return f"Detente. {top['label']} {top['position']}{distance}."
         if risk == "caution":
-            return f"Cuidado: {top['label']} {top['position']}."
+            distance = f" a {top['distance_m']:.1f} metros" if top.get("distance_m") is not None else ""
+            return f"Cuidado: {top['label']} {top['position']}{distance}."
         if risk == "notice":
             return f"Detectado: {top['label']} {top['position']}."
         return "No estoy seguro de lo que detecto. Avanza con precaucion."

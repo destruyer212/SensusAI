@@ -2,6 +2,14 @@
 
 > Autor del proyecto y dueño del codigo: **Carlos Jesus Ascarate Riega**
 
+## 2026-11-16 — Pipeline híbrido de profundidad
+
+- Integrado `POST /api/vision/realtime` en la API FastAPI existente.
+- Añadido adaptador opcional de Depth Anything V2.
+- Añadido estado de profundidad en `/api/vision/capabilities`.
+- El motor de profundidad no bloquea Gemini ni YOLO si no está instalado.
+- Documentada la calibración necesaria antes de interpretar metros reales.
+
 ## 2026-11-05 — Primera arquitectura YOLO + Gemini
 
 - Se añadió `POST /api/vision/fast-detect` para detección rápida sin consumir Gemini.

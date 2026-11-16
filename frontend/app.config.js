@@ -15,11 +15,14 @@ export default {
     },
     android: {
       package: "com.sensusai.mobile",
-      permissions: ["CAMERA"],
+      permissions: ["CAMERA", "RECORD_AUDIO"],
     },
     extra: {
       apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL || "http://localhost:8000",
+      eas: {
+        projectId: "d850ac17-8ba5-4676-b1d5-483c42890e90",
+      },
     },
-    plugins: ["expo-status-bar"],
+    plugins: ["expo-status-bar", "react-native-vision-camera"],
   },
 };

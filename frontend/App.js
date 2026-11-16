@@ -17,7 +17,7 @@ import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 
 import {
   analyzeScene,
-  fastDetectScene,
+  realtimeDetectScene,
   getApiBaseUrl,
   getVisionCapabilities,
   getEmergencyGuidance,
@@ -124,7 +124,7 @@ export default function App() {
     setDetections(nextDetections);
     setRiskLevel(nextRisk);
     lastRiskRef.current = nextRisk;
-    setStatus(result.mode === "gemini" ? `Gemini ${nextRisk}` : result.mode === "yolo" ? `YOLO ${nextRisk}` : "Modo demo");
+    setStatus(result.mode === "gemini" ? `Gemini ${nextRisk}` : result.mode === "hybrid" ? `YOLO + profundidad ${nextRisk}` : result.mode === "yolo" ? `YOLO ${nextRisk}` : "Modo demo");
 
     if (["caution", "danger"].includes(nextRisk) || result.action === "stop") {
       Vibration.vibrate([0, 180, 80, 180]);
@@ -159,7 +159,7 @@ export default function App() {
       });
 
       const result = source === "realtime" && fastVisionEnabledRef.current
-        ? await fastDetectScene(photo.uri, visionSessionRef.current)
+        ? await realtimeDetectScene(photo.uri, visionSessionRef.current)
         : await analyzeScene(photo.uri, taskOverride);
       const responseAge = Date.now() - startedAt;
       if (requestId !== requestSeqRef.current) return;
