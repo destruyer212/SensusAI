@@ -11,7 +11,7 @@ futuros dispositivos.
 ## Flujo
 
 ```text
-Imagen móvil → /api/vision/realtime → YOLO → Depth Anything opcional
+Imagen móvil → /api/vision/realtime → YOLO → Depth Anything
              → Safety Governor → observar / cuidado / detenerse
 ```
 
@@ -30,7 +30,7 @@ para escenas complejas, búsquedas de objetos y comandos del usuario.
 - El endpoint híbrido ya está integrado en el backend principal.
 - La lógica adaptada incluye distancia por región interna del objeto, posición
   izquierda/frente/derecha y detección de corredor central.
-- La profundidad está protegida por `DEPTH_ENABLED=false` por defecto.
+- En la EC2 activa, `DEPTH_ENABLED=true`; en instalaciones pequeñas puede dejarse desactivada.
 - Si el modelo de profundidad falla, el pipeline conserva YOLO y no tumba la API.
 - `depth_score` conserva la lectura cruda del modelo y `distance_m` aplica la
   calibración configurada.
@@ -49,8 +49,8 @@ Face al primer arranque.
 
 ## Criterio de despliegue
 
-La EC2 activa es `sensus-ai-yolo-depth`, una `t3.small` con 2 GiB de RAM y
-YOLO11n como motor principal. Gemini está desactivado y Depth Anything también
-queda desactivado en producción de prueba porque necesita más memoria y una
-calibración real por cámara. El código soporta ambos motores y puede activarse
-en una máquina con más RAM.
+La EC2 activa es `sensus-ai-yolo-depth`, una `m7i-flex.large` con 8 GiB de RAM.
+YOLO11n es el motor principal y Depth Anything está activo en CPU con el perfil
+de calidad alto (`640/30` para YOLO y `448/20` para profundidad). Gemini está
+desactivado para evitar consumo externo. Las distancias son monoculares y deben
+calibrarse por cámara antes de usarse como medida exacta.

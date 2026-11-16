@@ -10,6 +10,12 @@
 - La nueva API temporal es `http://100.24.55.64:8000`.
 - La estimación de cómputo es de aproximadamente US$16.09 por 168 horas, antes de EBS/red/impuestos.
 
+## 2026-11-16 — Perfil de calidad alto activado
+
+- YOLO quedó en `YOLO_IMAGE_SIZE=640` y `YOLO_MAX_DETECTIONS=30`.
+- Depth Anything quedó en `DEPTH_IMAGE_SIZE=448` y `DEPTH_MAX_OBJECTS=20`.
+- Gemini continúa apagado para conservar YOLO como motor principal y evitar consumo externo.
+
 ## 2026-11-16 — Pipeline híbrido de profundidad
 
 - Integrado `POST /api/vision/realtime` en la API FastAPI existente.

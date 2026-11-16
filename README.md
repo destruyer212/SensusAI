@@ -58,6 +58,11 @@ Gemini: apagado
 Depth Anything: activo en EC2 (CPU; distancia monocular aproximada)
 ```
 
+Perfil de inferencia activo: YOLO a tamaño 640 con hasta 30 detecciones y Depth
+Anything a tamaño 448 con hasta 20 objetos. Es la configuración de mayor calidad
+que dejamos para esta instancia CPU; puede aumentar la latencia por imagen. La
+app sigue usando análisis temporal para no saturar el teléfono ni la API.
+
 La IP es temporal. Para una versión estable se debe usar Elastic IP o un dominio
 con HTTPS.
 

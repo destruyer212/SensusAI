@@ -23,8 +23,8 @@ python backend/app.py
 ```
 
 La primera ejecución descarga el peso pequeño si la librería lo necesita. La EC2
-actual usa `yolo11n.pt`, con `YOLO_IMAGE_SIZE=320`, Gemini apagado y profundidad
-desactivada para conservar memoria.
+actual usa `yolo11n.pt`, con `YOLO_IMAGE_SIZE=640`, hasta 30 detecciones, Depth
+Anything activo a tamaño 448 con hasta 20 objetos y Gemini apagado.
 
 ## Comprobación
 
