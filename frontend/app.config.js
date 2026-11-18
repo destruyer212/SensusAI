@@ -15,7 +15,7 @@ export default {
     },
     android: {
       package: "com.sensusai.mobile",
-      permissions: ["CAMERA", "RECORD_AUDIO"],
+      permissions: ["CAMERA", "RECORD_AUDIO", "INTERNET", "ACCESS_NETWORK_STATE"],
       usesCleartextTraffic: true,
     },
     extra: {

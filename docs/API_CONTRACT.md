@@ -16,11 +16,65 @@ Respuesta:
 {
   "ok": true,
   "app": "Sensus AI",
-  "gemini_enabled": false
+  "gemini_enabled": false,
+  "yolo_enabled": true,
+  "yolo_available": true,
+  "webrtc_available": true
 }
 ```
 
-## Analizar escena
+## Video continuo en tiempo real (WebRTC)
+
+Permite transmitir video continuo desde la camara mediante WebRTC (UDP/SRTP) sin enviar fotogramas individuales por HTTP.
+
+### Negociar conexion (Señalizacion)
+
+```http
+POST /api/webrtc/offer
+Content-Type: application/json
+```
+
+Entrada:
+
+```json
+{
+  "sdp": "v=0...",
+  "type": "offer",
+  "session_id": "mobile-123"
+}
+```
+
+Salida:
+
+```json
+{
+  "sdp": "v=0...",
+  "type": "answer"
+}
+```
+
+### Canal de datos (RTCDataChannel: `sensus-alerts`)
+
+Las alertas y detecciones de YOLO se envian al vuelo de vuelta a la aplicacion movil a traves del DataChannel:
+
+```json
+{
+  "mode": "hybrid",
+  "risk_level": "caution",
+  "text": "Hay una silla cerca. Reduce la velocidad.",
+  "detections": [
+    {
+      "label": "chair",
+      "confidence": 0.88,
+      "distance_m": 1.2,
+      "position": "al frente"
+    }
+  ],
+  "action": "caution"
+}
+```
+
+## Analizar escena (Modo foto / snapshot individual)
 
 ```http
 POST /api/vision/analyze
