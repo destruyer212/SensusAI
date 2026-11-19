@@ -21,6 +21,7 @@ import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 
 import {
   analyzeScene,
+  realtimeDetectScene,
   getApiBaseUrl,
   getVisionCapabilities,
   getEmergencyGuidance,
@@ -61,6 +62,20 @@ export default function App() {
   const [detections, setDetections] = useState([]);
   const [riskLevel, setRiskLevel] = useState("unknown");
   const [activeTask, setActiveTask] = useState("navigation");
+
+  useEffect(() => {
+    if (device && hasPermission) {
+      const timer = setTimeout(() => {
+        setIsCameraReady(true);
+        setStatus((prev) =>
+          prev === "Camara pendiente" || prev === "Camara cargando"
+            ? "Camara nativa lista"
+            : prev
+        );
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [device, hasPermission]);
 
   useEffect(() => {
     activeTaskRef.current = activeTask;
@@ -176,7 +191,7 @@ export default function App() {
 
   async function scanScene(taskOverride = activeTaskRef.current) {
     if (!cameraRef.current || isAnalyzingRef.current) return;
-    if (!isCameraReady) {
+    if (!device || !hasPermission) {
       const message = "La camara aun no esta lista. Espera un momento e intenta otra vez.";
       setLastResult(message);
       setStatus("Camara cargando");
@@ -194,7 +209,9 @@ export default function App() {
         quality: 75,
       });
       const imageUri = snapshot.path.startsWith("file://") ? snapshot.path : `file://${snapshot.path}`;
-      const result = await analyzeScene(imageUri, taskOverride);
+      const result = (fastVisionEnabledRef.current || taskOverride === "navigation")
+        ? await realtimeDetectScene(imageUri, visionSessionRef.current)
+        : await analyzeScene(imageUri, taskOverride);
       if (requestId !== requestSeqRef.current) return;
       handleAnalysisResult(result);
     } catch (error) {
@@ -343,10 +360,10 @@ export default function App() {
       } catch (err) {
         setIsRealtime(false);
         realtimeActiveRef.current = false;
-        const message = `No se pudo conectar video continuo: ${err.message || ""}`;
-        setLastResult(message);
+        const msg = `No se pudo conectar video continuo: ${err.message || ""}`;
+        setLastResult(msg);
         setStatus("Error de video continuo");
-        speak(message);
+        speak(msg);
       }
     } else {
       webrtcClientRef.current?.stop();
@@ -407,15 +424,70 @@ export default function App() {
               speak(message);
             }}
           /> : <View style={styles.cameraPreview} />}
+
+          {/* Cajas de deteccion YOLO superpuestas sobre la camara */}
+          {detections.map((item, idx) => {
+            if (!item.bbox || !Array.isArray(item.bbox) || item.bbox.length !== 4) return null;
+            const [rawX1, rawY1, rawX2, rawY2] = item.bbox;
+            const minX = Math.min(rawX1, rawX2);
+            const maxX = Math.max(rawX1, rawX2);
+            const minY = Math.min(rawY1, rawY2);
+            const maxY = Math.max(rawY1, rawY2);
+
+            const left = `${Math.max(0, Math.min(100, minX * 100))}%`;
+            const top = `${Math.max(0, Math.min(100, minY * 100))}%`;
+            const width = `${Math.max(3, Math.min(100, (maxX - minX) * 100))}%`;
+            const height = `${Math.max(3, Math.min(100, (maxY - minY) * 100))}%`;
+
+            const isDanger = item.distance_m && item.distance_m < 1.0;
+            const isCaution = item.distance_m && item.distance_m < 2.5;
+            const boxColor = isDanger ? "#ef4444" : isCaution ? "#f59e0b" : "#10b981";
+
+            const labelInside = minY * 100 < 8;
+            const distLabel = item.distance_m ? ` · ${item.distance_m}m` : "";
+            const confLabel = item.confidence ? ` (${Math.round(item.confidence * 100)}%)` : "";
+
+            return (
+              <View
+                key={`yolo-box-${item.label}-${idx}`}
+                pointerEvents="none"
+                style={[
+                  styles.yoloBox,
+                  {
+                    left,
+                    top,
+                    width,
+                    height,
+                    borderColor: boxColor,
+                  },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.yoloLabelBadge,
+                    {
+                      backgroundColor: boxColor,
+                      top: labelInside ? 0 : -19,
+                    },
+                  ]}
+                >
+                  <Text style={styles.yoloLabelText}>
+                    {`${item.label || "objeto"}${distLabel}${confLabel}`}
+                  </Text>
+                </View>
+              </View>
+            );
+          })}
+
           <View style={styles.cameraBadge}>
             <Text style={styles.cameraBadgeText}>
-              {isRealtime ? "Tiempo real activo" : isCameraReady ? "Visor camara" : "Cargando camara"}
+              {isRealtime ? "Tiempo real activo" : (isCameraReady || device) ? "Visor camara" : "Cargando camara"}
             </Text>
           </View>
         </View>
 
         <ScrollView style={styles.bottomScroll} contentContainerStyle={styles.bottomStack}>
-          {!isCameraReady ? (
+          {!isCameraReady && !device ? (
             <View style={styles.cameraNotice}>
               <ActivityIndicator color={colors.accent} />
               <Text style={styles.cameraNoticeText}>Cargando camara nativa. Si la pantalla sigue negra, revisa el permiso de camara del APK.</Text>
@@ -594,6 +666,25 @@ const styles = StyleSheet.create({
     color: colors.ink,
     fontSize: 12,
     fontWeight: "900",
+  },
+  yoloBox: {
+    position: "absolute",
+    borderWidth: 2.5,
+    borderRadius: 4,
+    backgroundColor: "rgba(0, 0, 0, 0.05)",
+  },
+  yoloLabelBadge: {
+    position: "absolute",
+    left: -2,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 3,
+  },
+  yoloLabelText: {
+    color: "#ffffff",
+    fontSize: 10,
+    fontWeight: "900",
+    textTransform: "uppercase",
   },
   bottomScroll: {
     maxHeight: "54%",

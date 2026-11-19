@@ -31,6 +31,10 @@ async def analyze(
             detail="La imagen es demasiado pesada.",
         )
 
+    # Si Gemini esta apagado pero YOLO esta disponible, usar el pipeline YOLO + Depth
+    if not settings.gemini_enabled and yolo_detector.available:
+        return await run_in_threadpool(realtime_analyze, image_bytes)
+
     return await analyze_scene(image_bytes=image_bytes, mime_type=image.content_type, task=task or task_query)
 
 
