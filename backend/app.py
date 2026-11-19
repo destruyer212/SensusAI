@@ -4,8 +4,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from routes.vision import router as vision_router
 from routes.spatial import router as spatial_router
 from routes.command import router as command_router
+from routes.webrtc import router as webrtc_router
 from settings import settings
 from services.yolo_detector import yolo_detector
+from services.webrtc_service import webrtc_manager
 
 
 def create_app() -> FastAPI:
@@ -26,6 +28,11 @@ def create_app() -> FastAPI:
     app.include_router(vision_router, prefix="/api")
     app.include_router(spatial_router, prefix="/api")
     app.include_router(command_router, prefix="/api")
+    app.include_router(webrtc_router, prefix="/api")
+
+    @app.on_event("shutdown")
+    async def on_shutdown() -> None:
+        await webrtc_manager.close_all()
 
     @app.get("/", tags=["system"])
     def root() -> dict:
@@ -44,6 +51,7 @@ def create_app() -> FastAPI:
             "gemini_enabled": settings.gemini_enabled,
             "yolo_enabled": settings.yolo_enabled,
             "yolo_available": yolo_detector.available,
+            "webrtc_available": webrtc_manager.available,
         }
 
     return app

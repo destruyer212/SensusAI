@@ -15,13 +15,13 @@ export default {
     },
     android: {
       package: "com.sensusai.mobile",
-      permissions: ["CAMERA", "RECORD_AUDIO"],
+      permissions: ["CAMERA", "RECORD_AUDIO", "INTERNET", "ACCESS_NETWORK_STATE"],
       usesCleartextTraffic: true,
     },
     extra: {
       apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL || "http://100.24.55.64:8000",
       eas: {
-        projectId: "d850ac17-8ba5-4676-b1d5-483c42890e90",
+        projectId: "a986816e-e507-4478-901c-1d5edb815d16",
       },
     },
     plugins: [

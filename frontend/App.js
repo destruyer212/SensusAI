@@ -11,9 +11,11 @@ import {
   Vibration,
   View,
 } from "react-native";
-import Camera from "react-native-vision-camera/lib/commonjs/Camera";
-import { useCameraDevice } from "react-native-vision-camera/lib/commonjs/hooks/useCameraDevice";
-import { useCameraPermission } from "react-native-vision-camera/lib/commonjs/hooks/useCameraPermission";
+import {
+  Camera,
+  useCameraDevice,
+  useCameraPermission,
+} from "react-native-vision-camera";
 import * as Speech from "expo-speech";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 
@@ -26,6 +28,7 @@ import {
   interpretCommand,
   resolveQr,
 } from "./src/api/sensusClient";
+import { SensusWebRTCClient } from "./src/api/webrtcClient";
 import { colors } from "./src/theme/colors";
 
 const OFFICE_TEST_QR = "SENSUS:office_demo:office_entrance";
@@ -33,6 +36,7 @@ const MIN_REPEAT_SPEECH_MS = 12000;
 
 export default function App() {
   const cameraRef = useRef(null);
+  const webrtcClientRef = useRef(null);
   const isAnalyzingRef = useRef(false);
   const realtimeActiveRef = useRef(false);
   const activeTaskRef = useRef("navigation");
@@ -68,12 +72,33 @@ export default function App() {
     }
 
     return () => {
+      webrtcClientRef.current?.stop();
       realtimeActiveRef.current = false;
       Speech.stop();
       speechBusyRef.current = false;
       pendingSpeechRef.current = null;
     };
   }, [hasPermission, requestPermission]);
+
+  useEffect(() => {
+    webrtcClientRef.current = new SensusWebRTCClient({
+      onDetection: (data) => {
+        handleAnalysisResult(data);
+      },
+      onStatusChange: (newStatus) => {
+        setStatus(newStatus);
+      },
+      onError: (err) => {
+        console.warn("[WebRTC Error]", err);
+        setStatus("Error WebRTC");
+        setIsRealtime(false);
+      },
+    });
+
+    return () => {
+      webrtcClientRef.current?.stop();
+    };
+  }, []);
 
   useEffect(() => {
     getVisionCapabilities()
@@ -304,16 +329,29 @@ export default function App() {
     }
   }
 
-  function toggleRealtime() {
+  async function toggleRealtime() {
     const next = !isRealtime;
     setIsRealtime(next);
     realtimeActiveRef.current = next;
 
     if (next) {
-      setStatus("Video YOLO nativo iniciando");
+      try {
+        setStatus("Iniciando video continuo...");
+        await webrtcClientRef.current?.start({
+          facingMode: cameraFacing === "back" ? "environment" : "user",
+        });
+      } catch (err) {
+        setIsRealtime(false);
+        realtimeActiveRef.current = false;
+        const message = `No se pudo conectar video continuo: ${err.message || ""}`;
+        setLastResult(message);
+        setStatus("Error de video continuo");
+        speak(message);
+      }
     } else {
+      webrtcClientRef.current?.stop();
       requestSeqRef.current += 1;
-      setStatus("Video YOLO detenido");
+      setStatus("Video continuo detenido");
     }
   }
 
