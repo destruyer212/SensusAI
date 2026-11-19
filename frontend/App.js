@@ -11,9 +11,11 @@ import {
   Vibration,
   View,
 } from "react-native";
-import Camera from "react-native-vision-camera/lib/commonjs/Camera";
-import { useCameraDevice } from "react-native-vision-camera/lib/commonjs/hooks/useCameraDevice";
-import { useCameraPermission } from "react-native-vision-camera/lib/commonjs/hooks/useCameraPermission";
+import {
+  Camera,
+  useCameraDevice,
+  useCameraPermission,
+} from "react-native-vision-camera";
 import * as Speech from "expo-speech";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 
