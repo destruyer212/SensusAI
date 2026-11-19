@@ -1,5 +1,16 @@
-export default {
-  expo: {
+const { withAndroidManifest } = require("@expo/config-plugins");
+
+const withCleartextTraffic = (config) => {
+  return withAndroidManifest(config, (modConfig) => {
+    const mainApplication = modConfig.modResults.manifest.application[0];
+    mainApplication.$["android:usesCleartextTraffic"] = "true";
+    return modConfig;
+  });
+};
+
+module.exports = ({ config }) => {
+  const expoConfig = {
+    ...config,
     name: "Sensus AI",
     slug: "sensus-ai",
     version: "0.1.0",
@@ -16,7 +27,6 @@ export default {
     android: {
       package: "com.sensusai.mobile",
       permissions: ["CAMERA", "RECORD_AUDIO", "INTERNET", "ACCESS_NETWORK_STATE"],
-      usesCleartextTraffic: true,
     },
     extra: {
       apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL || "http://100.24.55.64:8000",
@@ -28,5 +38,7 @@ export default {
       "expo-status-bar",
       ["react-native-vision-camera", { enableFrameProcessors: false }],
     ],
-  },
+  };
+
+  return withCleartextTraffic(expoConfig);
 };
