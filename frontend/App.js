@@ -190,6 +190,13 @@ export default function App() {
   }
 
   async function scanScene(taskOverride = activeTaskRef.current) {
+    // Si WebRTC está streamando, la cámara ya está en uso por react-native-webrtc.
+    // No podemos abrir VisionCamera simultáneamente → re-hablar el último resultado.
+    if (realtimeActiveRef.current) {
+      speak(lastResult, { force: true });
+      return;
+    }
+
     if (!cameraRef.current || isAnalyzingRef.current) return;
     if (!device || !hasPermission) {
       const message = "La camara aun no esta lista. Espera un momento e intenta otra vez.";
@@ -409,9 +416,9 @@ export default function App() {
             ref={cameraRef}
             style={styles.cameraPreview}
             device={device}
-            isActive={hasPermission}
+            isActive={hasPermission && !isRealtime}
             photo={true}
-            video={true}
+            video={false}
             onInitialized={() => {
               setIsCameraReady(true);
               setStatus("Camara nativa lista");
@@ -519,14 +526,14 @@ export default function App() {
 
           <View style={styles.controls}>
             <Pressable
-              style={[styles.actionButton, isAnalyzing && styles.disabledButton]}
+              style={[styles.actionButton, (isAnalyzing || isRealtime) && styles.disabledButton]}
               disabled={isAnalyzing}
               onPress={scanScene}
             >
               {isAnalyzing ? (
                 <ActivityIndicator color={colors.inkDark} />
               ) : (
-                <Text style={styles.actionButtonText}>Leer ahora</Text>
+                <Text style={styles.actionButtonText}>{isRealtime ? "En tiempo real" : "Leer ahora"}</Text>
               )}
             </Pressable>
 
