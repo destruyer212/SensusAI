@@ -5,10 +5,12 @@ import { getApiBaseUrl } from "./sensusClient";
  * Requiere 'react-native-webrtc'.
  */
 export class SensusWebRTCClient {
-  constructor({ onDetection, onStatusChange, onError }) {
+  constructor({ onDetection, onStatusChange, onError, onStreamReady }) {
     this.onDetection = onDetection || (() => {});
     this.onStatusChange = onStatusChange || (() => {});
     this.onError = onError || (() => {});
+    // onStreamReady(streamURL) se llama cuando el stream local está listo para mostrarse
+    this.onStreamReady = onStreamReady || (() => {});
     this.pc = null;
     this.stream = null;
     this.dataChannel = null;
@@ -42,6 +44,11 @@ export class SensusWebRTCClient {
           height: { ideal: 480 },
         },
       });
+
+      // Notificar al UI para mostrar el preview en RTCView
+      if (this.stream && this.stream.toURL) {
+        this.onStreamReady(this.stream.toURL());
+      }
 
       this.onStatusChange("Negociando WebRTC");
 
@@ -171,6 +178,8 @@ export class SensusWebRTCClient {
       } catch (e) {}
       this.stream = null;
     }
+    // Notificar que ya no hay stream para limpiar el RTCView
+    this.onStreamReady(null);
     this.onStatusChange("Video continuo detenido");
   }
 }

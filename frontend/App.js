@@ -16,6 +16,11 @@ import {
   useCameraDevice,
   useCameraPermission,
 } from "react-native-vision-camera";
+// RTCView de react-native-webrtc para mostrar el stream de camara durante WebRTC
+let RTCView = null;
+try {
+  RTCView = require("react-native-webrtc").RTCView;
+} catch (_e) {}
 import * as Speech from "expo-speech";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 
@@ -62,6 +67,8 @@ export default function App() {
   const [detections, setDetections] = useState([]);
   const [riskLevel, setRiskLevel] = useState("unknown");
   const [activeTask, setActiveTask] = useState("navigation");
+  // URL del stream local WebRTC para mostrar en RTCView durante tiempo real
+  const [webrtcStreamUrl, setWebrtcStreamUrl] = useState(null);
 
   useEffect(() => {
     if (device && hasPermission) {
@@ -107,6 +114,11 @@ export default function App() {
         console.warn("[WebRTC Error]", err);
         setStatus("Error WebRTC");
         setIsRealtime(false);
+        setWebrtcStreamUrl(null);
+      },
+      // Recibir la URL del stream local para mostrar en RTCView
+      onStreamReady: (url) => {
+        setWebrtcStreamUrl(url);
       },
     });
 
@@ -412,25 +424,37 @@ export default function App() {
         </View>
 
         <View style={styles.cameraPanel}>
-          {device ? <Camera
-            ref={cameraRef}
-            style={styles.cameraPreview}
-            device={device}
-            isActive={hasPermission && !isRealtime}
-            photo={true}
-            video={false}
-            onInitialized={() => {
-              setIsCameraReady(true);
-              setStatus("Camara nativa lista");
-            }}
-            onError={(error) => {
-              const message = `No pude abrir la camara: ${error.message || "dispositivo no disponible"}`;
-              setIsCameraReady(false);
-              setStatus("Camara no disponible");
-              setLastResult(message);
-              speak(message);
-            }}
-          /> : <View style={styles.cameraPreview} />}
+          {/* RTCView: stream local de WebRTC cuando tiempo real está activo */}
+          {webrtcStreamUrl && RTCView ? (
+            <RTCView
+              streamURL={webrtcStreamUrl}
+              style={styles.cameraPreview}
+              objectFit="cover"
+              mirror={false}
+            />
+          ) : device ? (
+            <Camera
+              ref={cameraRef}
+              style={styles.cameraPreview}
+              device={device}
+              isActive={hasPermission && !isRealtime}
+              photo={true}
+              video={false}
+              onInitialized={() => {
+                setIsCameraReady(true);
+                setStatus("Camara nativa lista");
+              }}
+              onError={(error) => {
+                const message = `No pude abrir la camara: ${error.message || "dispositivo no disponible"}`;
+                setIsCameraReady(false);
+                setStatus("Camara no disponible");
+                setLastResult(message);
+                speak(message);
+              }}
+            />
+          ) : (
+            <View style={styles.cameraPreview} />
+          )}
 
           {/* Cajas de deteccion YOLO superpuestas sobre la camara */}
           {detections.map((item, idx) => {
