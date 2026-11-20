@@ -64,7 +64,7 @@ export default function CalibrationModal({ visible, onClose }) {
       setStatus(s);
       setSessionPoints(s.session_points || []);
     } catch (e) {
-      setErrorMsg("No se pudo conectar con el servidor.");
+      setErrorMsg(`Error al conectar con el servidor: ${e.message}`);
     }
   }
 
@@ -233,6 +233,9 @@ export default function CalibrationModal({ visible, onClose }) {
           {!!errorMsg && (
             <View style={s.errorCard}>
               <Text style={s.errorText}>{errorMsg}</Text>
+              <Pressable style={s.retryBtn} onPress={loadStatus}>
+                <Text style={s.retryBtnText}>↺ Reintentar conexión</Text>
+              </Pressable>
             </View>
           )}
 
@@ -462,8 +465,18 @@ const s = StyleSheet.create({
     backgroundColor: "rgba(239,68,68,0.15)",
     borderWidth: 1,
     borderColor: "#ef4444",
+    gap: 8,
   },
   errorText: { color: "#ef4444", fontSize: 13, fontWeight: "700" },
+  retryBtn: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#ef4444",
+  },
+  retryBtnText: { color: "#ef4444", fontSize: 12, fontWeight: "800" },
 
   // Buttons
   primaryBtn: {
