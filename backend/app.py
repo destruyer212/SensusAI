@@ -5,6 +5,7 @@ from routes.vision import router as vision_router
 from routes.spatial import router as spatial_router
 from routes.command import router as command_router
 from routes.webrtc import router as webrtc_router
+from routes.calibration import router as calibration_router
 from settings import settings
 from services.yolo_detector import yolo_detector
 from services.webrtc_service import webrtc_manager
@@ -29,6 +30,7 @@ def create_app() -> FastAPI:
     app.include_router(spatial_router, prefix="/api")
     app.include_router(command_router, prefix="/api")
     app.include_router(webrtc_router, prefix="/api")
+    app.include_router(calibration_router, prefix="/api")
 
     @app.on_event("shutdown")
     async def on_shutdown() -> None:

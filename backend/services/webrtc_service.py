@@ -112,8 +112,15 @@ class WebRTCManager:
             return False
 
     async def _process_video_track(self, track: Any, session_id: str) -> None:
-        """Loop that continuously drains frames from the video track and passes the latest to YOLO."""
-        is_analyzing = False
+        """Loop que drena frames del video track y pasa el mas reciente a YOLO.
+
+        Usa un dict mutable como estado compartido para evitar el problema de
+        'nonlocal' en closures lanzadas con asyncio.create_task (el flag
+        nonlocal no se resetea de forma confiable entre tareas asyncio).
+        """
+        # Dict mutable: permite que la tarea interna modifique el flag
+        # sin importar el contexto de coroutine.
+        state = {"is_analyzing": False}
 
         while True:
             try:
@@ -122,36 +129,45 @@ class WebRTCManager:
                 logger.info("Fin de transmision de video para sesion %s", session_id)
                 break
 
-            # If YOLO/Depth is still working on the previous frame, skip this one
-            # to guarantee true zero-lag real-time execution.
-            if is_analyzing:
+            # Si YOLO/Depth aun procesa el frame anterior, descartar este
+            # para garantizar ejecucion en tiempo real sin acumulacion de cola.
+            if state["is_analyzing"]:
                 continue
 
-            is_analyzing = True
+            state["is_analyzing"] = True
 
-            async def _analyze(current_frame: Any) -> None:
-                nonlocal is_analyzing
+            async def _analyze(current_frame: Any, _state: dict = state) -> None:
                 try:
-                    # Convert aiortc VideoFrame to JPEG in memory
+                    # Convertir VideoFrame de aiortc a JPEG en memoria
                     pil_image = current_frame.to_image()
                     buffer = BytesIO()
                     pil_image.save(buffer, format="JPEG", quality=68, optimize=False)
                     jpeg_bytes = buffer.getvalue()
 
-                    # Run hybrid realtime pipeline in threadpool
+                    # Ejecutar pipeline hibrido en threadpool (YOLO + Depth)
                     result = await run_in_threadpool(realtime_analyze, jpeg_bytes, session_id=session_id)
 
-                    # Send detection result via RTCDataChannel to phone
+                    # Enviar resultado via RTCDataChannel al telefono
                     channels = self.data_channels.get(session_id, [])
                     if channels:
                         message = json.dumps(result)
                         for ch in list(channels):
                             if getattr(ch, "readyState", None) == "open":
                                 ch.send(message)
+                        logger.debug(
+                            "WebRTC resultado enviado a %d canal(es) [%s]",
+                            len(channels), session_id
+                        )
+                    else:
+                        logger.warning(
+                            "WebRTC: no hay DataChannels abiertos para sesion %s", session_id
+                        )
                 except Exception as err:
                     logger.error("Error procesando frame WebRTC [%s]: %s", session_id, err)
                 finally:
-                    is_analyzing = False
+                    # CRITICO: siempre resetear el flag para que el loop
+                    # pueda procesar el siguiente frame disponible.
+                    _state["is_analyzing"] = False
 
             asyncio.create_task(_analyze(frame))
 
