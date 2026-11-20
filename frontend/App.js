@@ -36,6 +36,7 @@ import {
 } from "./src/api/sensusClient";
 import { SensusWebRTCClient } from "./src/api/webrtcClient";
 import { colors } from "./src/theme/colors";
+import CalibrationModal from "./src/components/CalibrationModal";
 
 const OFFICE_TEST_QR = "SENSUS:office_demo:office_entrance";
 const MIN_REPEAT_SPEECH_MS = 12000;
@@ -69,6 +70,8 @@ export default function App() {
   const [activeTask, setActiveTask] = useState("navigation");
   // URL del stream local WebRTC para mostrar en RTCView durante tiempo real
   const [webrtcStreamUrl, setWebrtcStreamUrl] = useState(null);
+  // Pantalla de calibración de profundidad
+  const [showCalibration, setShowCalibration] = useState(false);
 
   useEffect(() => {
     if (device && hasPermission) {
@@ -583,6 +586,14 @@ export default function App() {
             </Pressable>
           </View>
 
+          {/* Botón de calibración de profundidad */}
+          <Pressable
+            style={styles.calibrateButton}
+            onPress={() => setShowCalibration(true)}
+          >
+            <Text style={styles.calibrateButtonText}>📐 Calibrar profundidad</Text>
+          </Pressable>
+
           <View style={styles.commandControls}>
             <Pressable style={styles.commandButton} onPress={() => runCommand("Sensus quiero ir al bano")}>
               <Text style={styles.commandButtonText}>Sensus baño</Text>
@@ -613,6 +624,12 @@ export default function App() {
           </View>
         </ScrollView>
       </SafeAreaView>
+
+      {/* Modal de calibración de profundidad */}
+      <CalibrationModal
+        visible={showCalibration}
+        onClose={() => setShowCalibration(false)}
+      />
     </View>
   );
 }
@@ -934,5 +951,20 @@ const styles = StyleSheet.create({
     color: colors.inkDark,
     fontSize: 17,
     fontWeight: "900",
+  },
+  // Botón de calibración de profundidad
+  calibrateButton: {
+    minHeight: 46,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.accent,
+    backgroundColor: "rgba(71,215,172,0.12)",
+  },
+  calibrateButtonText: {
+    color: colors.accent,
+    fontSize: 14,
+    fontWeight: "800",
   },
 });
