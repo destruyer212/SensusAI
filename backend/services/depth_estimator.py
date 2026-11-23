@@ -127,5 +127,67 @@ class DepthEstimator:
             "central_obstacle": True,
         }
 
+    def detect_dropoff(self, image_bytes: bytes, depth: np.ndarray | None = None) -> dict[str, Any] | None:
+        """Detecta obstaculos negativos: escalones hacia abajo, huecos o desniveles bruscos.
+        
+        Analiza el perfil vertical de profundidad en el corredor del suelo frente
+        a los pies del usuario (y: 55% a 95%). Si hay un salto discontinuo positivo
+        en la distancia (la superficie del piso 'cae' abruptamente), se genera una alerta.
+        """
+        depth = depth if depth is not None else self.estimate(image_bytes)
+        height, width = depth.shape[:2]
+
+        # Pasillo de pisada: tercio inferior central donde el usuario da sus proximos pasos
+        y1, y2 = int(height * 0.55), int(height * 0.95)
+        x1, x2 = int(width * 0.30), int(width * 0.70)
+        floor_region = depth[y1:y2, x1:x2]
+        if not floor_region.size:
+            return None
+
+        # Convertir a metros calibrados
+        floor_m = np.clip(self.a * floor_region + self.b, 0.05, 10.0)
+
+        # Perfil vertical del suelo (mediana por fila a lo largo del ancho del pasillo)
+        # La fila 0 corresponde a y1 (mas lejos), la ultima a y2 (cerca de los pies)
+        profile = np.median(floor_m, axis=1)
+
+        step = max(3, len(profile) // 12)
+        if len(profile) <= step:
+            return None
+
+        # diffs: incremento de distancia al avanzar hacia adelante (de abajo hacia arriba)
+        # profile[:-step] (mas lejos) - profile[step:] (mas cerca)
+        diffs = profile[:-step] - profile[step:]
+
+        max_idx = int(np.argmax(diffs))
+        max_jump = float(diffs[max_idx])
+
+        # Umbral: un salto brusco mayor a 35 cm en el plano del suelo indica un desnivel
+        DROP_THRESHOLD_M = 0.35
+        if max_jump >= DROP_THRESHOLD_M:
+            edge_row = y1 + max_idx + step
+            distance_to_edge = float(profile[max_idx + step])
+
+            # Alertar si el desnivel esta dentro del rango critico de pisada (< 2.4 m)
+            if distance_to_edge < 2.4:
+                confidence = round(min(1.0, max_jump / 0.6), 2)
+                return {
+                    "label": "desnivel o escalón al frente",
+                    "confidence": confidence,
+                    "bbox": [
+                        0.25,
+                        round(max(0.0, (edge_row - step) / height), 4),
+                        0.75,
+                        round(min(1.0, (edge_row + step) / height), 4),
+                    ],
+                    "distance_m": round(distance_to_edge, 2),
+                    "position": "al frente",
+                    "zone": "cuidado" if distance_to_edge < 1.2 else "atención",
+                    "is_negative_obstacle": True,
+                    "drop_height_m": round(max_jump, 2),
+                }
+
+        return None
+
 
 depth_estimator = DepthEstimator()
