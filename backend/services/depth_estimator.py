@@ -92,11 +92,29 @@ class DepthEstimator:
         for detection in detections[: settings.depth_max_objects]:
             bbox = detection.get("bbox") or [0, 0, 0, 0]
             x1, y1, x2, y2 = [max(0.0, min(1.0, float(value))) for value in bbox]
-            left, right = sorted((int(x1 * width), int(x2 * width)))
-            top, bottom = sorted((int(y1 * height), int(y2 * height)))
+            
+            # Para evitar que el fondo, la mesa o el suelo alrededor contaminen
+            # la distancia del objeto, recortamos los margenes un 15% hacia el centro (core).
+            w_box = max(0.01, x2 - x1)
+            h_box = max(0.01, y2 - y1)
+            cx1 = max(0.0, x1 + 0.15 * w_box)
+            cx2 = min(1.0, x2 - 0.15 * w_box)
+            cy1 = max(0.0, y1 + 0.15 * h_box)
+            cy2 = min(1.0, y2 - 0.15 * h_box)
+
+            left, right = sorted((int(cx1 * width), int(cx2 * width)))
+            top, bottom = sorted((int(cy1 * height), int(cy2 * height)))
             region = depth[max(0, top):min(height, bottom), max(0, left):min(width, right)]
+
+            # Fallback al bbox completo si la region central resulto vacia
+            if not region.size:
+                left, right = sorted((int(x1 * width), int(x2 * width)))
+                top, bottom = sorted((int(y1 * height), int(y2 * height)))
+                region = depth[max(0, top):min(height, bottom), max(0, left):min(width, right)]
+
             item = dict(detection)
-            raw_distance = float(np.percentile(region, 25)) if region.size else None
+            # Usar la mediana del nucleo central para maxima estabilidad frente a ruido
+            raw_distance = float(np.median(region)) if region.size else None
             item["depth_score"] = round(raw_distance, 4) if raw_distance is not None else None
             item["distance_m"] = round(max(0.05, self.a * raw_distance + self.b), 2) if raw_distance is not None else None
             item["position"] = "izquierda" if (x1 + x2) / 2 < 0.35 else "derecha" if (x1 + x2) / 2 > 0.65 else "al frente"
@@ -108,12 +126,14 @@ class DepthEstimator:
     def central_obstacle(self, image_bytes: bytes, depth: np.ndarray | None = None) -> dict[str, Any] | None:
         depth = depth if depth is not None else self.estimate(image_bytes)
         height, width = depth.shape[:2]
-        y1, y2 = int(height * 0.25), int(height * 0.95)
-        x1, x2 = int(width * 0.25), int(width * 0.75)
+        # Corredor central enfocado (evita bordes laterales extremos y parte superior lejana)
+        y1, y2 = int(height * 0.35), int(height * 0.85)
+        x1, x2 = int(width * 0.35), int(width * 0.65)
         corridor = depth[y1:y2, x1:x2]
         if not corridor.size:
             return None
-        raw_distance = float(np.percentile(corridor, 20))
+        # Mediana estable del pasillo central
+        raw_distance = float(np.median(corridor))
         distance = max(0.05, self.a * raw_distance + self.b)
         if distance >= settings.depth_corridor_m:
             return None

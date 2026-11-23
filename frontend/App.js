@@ -52,6 +52,7 @@ export default function App() {
   const visionSessionRef = useRef(`mobile-${Date.now()}`);
   const lastSpokenRef = useRef({ text: "", at: 0 });
   const speechBusyRef = useRef(false);
+  const speechWatchdogRef = useRef(null);
   const pendingSpeechRef = useRef(null);
   const lastRiskRef = useRef("unknown");
   const { hasPermission, requestPermission } = useCameraPermission();
@@ -62,6 +63,7 @@ export default function App() {
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [fastVisionEnabled, setFastVisionEnabled] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const voiceEnabledRef = useRef(true);
   const [status, setStatus] = useState("Camara pendiente");
   const [lastResult, setLastResult] = useState("Concede permiso de camara para iniciar Sensus AI.");
   const [currentLocation, setCurrentLocation] = useState(null);
@@ -90,6 +92,10 @@ export default function App() {
   useEffect(() => {
     activeTaskRef.current = activeTask;
   }, [activeTask]);
+
+  useEffect(() => {
+    voiceEnabledRef.current = voiceEnabled;
+  }, [voiceEnabled]);
 
   useEffect(() => {
     if (!hasPermission) {
@@ -143,7 +149,7 @@ export default function App() {
   }, []);
 
   function speak(text, { force = false, riskLevelOverride = "unknown" } = {}) {
-    if (!voiceEnabled) return;
+    if (!voiceEnabledRef.current) return;
     const normalized = text.trim().toLowerCase();
     const now = Date.now();
     const isUrgent = ["caution", "danger"].includes(riskLevelOverride);
@@ -155,21 +161,45 @@ export default function App() {
     const priority = force || riskLevelOverride === "danger" ? 3 : isUrgent ? 2 : 1;
     const pending = pendingSpeechRef.current;
     if (speechBusyRef.current) {
-      if (!pending || priority >= pending.priority) {
-        pendingSpeechRef.current = { text, force, riskLevelOverride, priority };
+      if (force || priority >= 3) {
+        // En alertas criticas (danger / stop), cortar habla anterior colgada de inmediato
+        Speech.stop();
+        speechBusyRef.current = false;
+        pendingSpeechRef.current = null;
+      } else {
+        if (!pending || priority >= pending.priority) {
+          pendingSpeechRef.current = { text, force, riskLevelOverride, priority };
+        }
+        return;
       }
-      return;
     }
 
     lastSpokenRef.current = { text: normalized, at: now };
     speechBusyRef.current = true;
+
+    // Watchdog timer: si en 4.5 segundos Android TTS no llamo a onDone u onError,
+    // desbloquear automaticamente speechBusyRef para evitar que el audio se quede sordo.
+    if (speechWatchdogRef.current) clearTimeout(speechWatchdogRef.current);
+    speechWatchdogRef.current = setTimeout(() => {
+      flushPendingSpeech();
+    }, 4500);
+
     Speech.speak(text, {
-      language: "es-PE",
-      rate: 1,
+      language: "es-419",
+      rate: 1.05,
       pitch: 1,
-      onDone: flushPendingSpeech,
-      onStopped: flushPendingSpeech,
-      onError: flushPendingSpeech,
+      onDone: () => {
+        if (speechWatchdogRef.current) clearTimeout(speechWatchdogRef.current);
+        flushPendingSpeech();
+      },
+      onStopped: () => {
+        if (speechWatchdogRef.current) clearTimeout(speechWatchdogRef.current);
+        flushPendingSpeech();
+      },
+      onError: () => {
+        if (speechWatchdogRef.current) clearTimeout(speechWatchdogRef.current);
+        flushPendingSpeech();
+      },
     });
   }
 
@@ -620,7 +650,19 @@ export default function App() {
 
           <View style={styles.voiceRow}>
             <Text style={styles.voiceText}>Voz</Text>
-            <Switch value={voiceEnabled} onValueChange={setVoiceEnabled} />
+            <Switch
+              value={voiceEnabled}
+              onValueChange={(val) => {
+                setVoiceEnabled(val);
+                voiceEnabledRef.current = val;
+                if (!val) {
+                  Speech.stop();
+                  speechBusyRef.current = false;
+                  pendingSpeechRef.current = null;
+                  if (speechWatchdogRef.current) clearTimeout(speechWatchdogRef.current);
+                }
+              }}
+            />
           </View>
         </ScrollView>
       </SafeAreaView>
