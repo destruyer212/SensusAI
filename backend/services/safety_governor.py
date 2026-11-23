@@ -107,6 +107,8 @@ class SafetyGovernor:
             "bottom": round(bottom, 4),
             "distance_m": round(distance_m, 2) if distance_m is not None else None,
             "zone": detection.get("zone"),
+            "is_negative_obstacle": bool(detection.get("is_negative_obstacle")),
+            "drop_height_m": detection.get("drop_height_m"),
         }
 
     @staticmethod
@@ -118,6 +120,13 @@ class SafetyGovernor:
         distance_m = item.get("distance_m")
         if confidence < 0.35:
             return "unknown"
+        if item.get("is_negative_obstacle"):
+            # Los desniveles y caidas son de maxima prioridad a mayor distancia
+            if distance_m is not None and distance_m <= 1.3:
+                return "danger"
+            if distance_m is not None and distance_m <= 2.2:
+                return "caution"
+            return "notice"
         if distance_m is not None and distance_m <= 1.0:
             return "danger"
         if distance_m is not None and distance_m <= 2.0:
