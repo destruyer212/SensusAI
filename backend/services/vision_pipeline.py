@@ -23,17 +23,24 @@ def realtime_analyze(image_bytes: bytes, *, session_id: str = "default") -> dict
             depth_map = depth_estimator.estimate(image_bytes)
             detections = depth_estimator.enrich(image_bytes, detections, depth=depth_map)
             front_obstacle = depth_estimator.central_obstacle(image_bytes, depth=depth_map)
-            dropoff = depth_estimator.detect_dropoff(image_bytes, depth=depth_map)
             has_front_risk = any(
                 item.get("position") == "al frente"
                 and item.get("distance_m") is not None
-                and item["distance_m"] < 2.5
+                and item["distance_m"] < 2.2
                 for item in detections
             )
             if front_obstacle and not has_front_risk:
                 detections.append(front_obstacle)
-            if dropoff:
-                detections.append(dropoff)
+
+            # Si el corredor ya esta bloqueado por un obstaculo positivo frontal (ej. mesa,
+            # persona o juguete), la silueta del objeto no debe confundirse con un desnivel.
+            # Solo buscamos desniveles si el camino al frente no tiene un obstaculo cercano.
+            corridor_blocked = bool(front_obstacle) or has_front_risk
+            if not corridor_blocked:
+                dropoff = depth_estimator.detect_dropoff(image_bytes, depth=depth_map)
+                if dropoff:
+                    detections.append(dropoff)
+
             depth_used = True
         except Exception as error:  # depth must never take down YOLO alerts
             print(f"[vision_pipeline] profundidad no disponible: {error}")
