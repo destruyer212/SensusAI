@@ -23,6 +23,8 @@ class SessionState:
     previous_area_by_label: dict[str, float] = field(default_factory=dict)
     last_spoken_by_key: dict[str, float] = field(default_factory=dict)
     last_risk: str = "clear"
+    previous_distance_by_label: dict[str, float] = field(default_factory=dict)
+    last_seen_by_label: dict[str, float] = field(default_factory=dict)
 
 
 class SafetyGovernor:
@@ -49,6 +51,23 @@ class SafetyGovernor:
             previous_area = state.previous_area_by_label.get(label, item["area"])
             item["growth"] = max(0.0, item["area"] - previous_area)
             state.previous_area_by_label[label] = item["area"]
+
+            # Filtro temporal EMA para la distancia: amortigua fluctuaciones de jitter
+            # entre frames cuando el usuario o el objeto estan fijos en un punto.
+            curr_dist = item.get("distance_m")
+            if curr_dist is not None:
+                last_seen = state.last_seen_by_label.get(label, 0.0)
+                prev_dist = state.previous_distance_by_label.get(label)
+                if prev_dist is not None and (now - last_seen) < 2.5:
+                    alpha = 0.35
+                    if abs(curr_dist - prev_dist) > 1.5:
+                        alpha = 0.60
+                    smoothed = alpha * curr_dist + (1.0 - alpha) * prev_dist
+                    curr_dist = round(smoothed, 2)
+                    item["distance_m"] = curr_dist
+                state.previous_distance_by_label[label] = curr_dist
+                state.last_seen_by_label[label] = now
+
             item["risk_level"] = self._risk_for(item)
             normalized.append(item)
 
